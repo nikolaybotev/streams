@@ -1,0 +1,46 @@
+{
+  "name": "streams",
+  "version": "0.0.1",
+  "description": "A lazy streams library for functional composition in JavaScript.",
+  "main": "index.js",
+  "config": {
+    "pretty_files": "**/*.md src/**/*.ts !**/build/**/*"
+  },
+  "scripts": {
+    "build": "run-s clean tsc",
+    "clean": "del-cli '**/*.js' '**/*.d.ts' '!node_modules'",
+    "format:check": "prettier --check $npm_package_config_pretty_files",
+    "format:fix": "prettier --write $npm_package_config_pretty_files",
+    "test": "jest",
+    "tsc": "tsc",
+    "tscw": "tsc --watch --listEmittedFiles"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nikolaybotevb/streams.git"
+  },
+  "author": "Nikolay Botev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nikolaybotevb/streams/issues"
+  },
+  "homepage": "https://github.com/nikolaybotevb/streams",
+  "jest": {
+    "rootDir": "./src",
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "transform": {
+      "^.+\\.[jt]sx?$": "ts-jest"
+    }
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.23",
+    "@types/node": "^12.12.8",
+    "del-cli": "^3.0.0",
+    "jest": "^24.9.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^1.19.1",
+    "ts-jest": "^24.1.0",
+    "typescript": "^3.7.2"
+  }
+}
