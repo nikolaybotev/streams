@@ -4,10 +4,10 @@ import { streamLines } from "../lines";
 
 declare module "stream" {
   interface Readable {
-    streamLines(encoding?: string): AsyncStream<string>;
+    streamLines(encoding?: BufferEncoding): AsyncStream<string>;
   }
 }
 
-Readable.prototype.streamLines = function(encoding?: string) {
+Readable.prototype.streamLines = function(encoding?: BufferEncoding) {
   return streamLines(this, encoding);
 };
