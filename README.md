@@ -1,5 +1,7 @@
 # Streams
 
+[![Node CI](https://github.com/nikolaybotev/streams/actions/workflows/nodejs.yml/badge.svg)](https://github.com/nikolaybotev/streams/actions/workflows/nodejs.yml)
+
 A lazy streams library for functional composition in JavaScript.
 
 ```javascript
