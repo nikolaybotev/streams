@@ -4,6 +4,7 @@ export interface AsyncStream<T> extends AsyncIterable<T> {
   map<U>(transform: (_: T) => U): AsyncStream<U>;
   mapAwait<U>(transform: (_: T) => Promise<U>): AsyncStream<U>;
   flatMap<U>(transform: (_: T) => AsyncStream<U>): AsyncStream<U>;
+  flatMapAwait<U>(transform: (_: T) => Promise<AsyncStream<U>>): AsyncStream<U>;
   batch(batchSize: number): AsyncStream<T[]>;
   limit(maxSize: number): AsyncStream<T>;
   skip(n: number): AsyncStream<T>;
@@ -58,23 +59,32 @@ class AsyncStreamOfIterator<T> implements AsyncStream<T> {
   }
 
   mapAwait<U>(transform: (_: T) => Promise<U>): AsyncStream<U> {
-    async function* mapped(it: AsyncStream<T>) {
+    async function* mapAwaited(it: AsyncStream<T>) {
       for await (const v of it) {
         yield await transform(v);
       }
     }
-    return new AsyncStreamOfIterator(mapped(this));
+    return new AsyncStreamOfIterator(mapAwaited(this));
   }
 
   flatMap<U>(transform: (_: T) => AsyncStream<U>): AsyncStream<U> {
     async function* flatMapped(it: AsyncStream<T>) {
       for await (const nested of it) {
-        for await (const v of transform(nested)) {
-          yield v;
-        }
+        yield* transform(nested);
       }
     }
     return new AsyncStreamOfIterator(flatMapped(this));
+  }
+
+  flatMapAwait<U>(
+    transform: (_: T) => Promise<AsyncStream<U>>
+  ): AsyncStream<U> {
+    async function* flatMapAwaited(it: AsyncStream<T>) {
+      for await (const nested of it) {
+        yield* await transform(nested);
+      }
+    }
+    return new AsyncStreamOfIterator(flatMapAwaited(this));
   }
 
   batch(batchSize: number): AsyncStream<T[]> {
