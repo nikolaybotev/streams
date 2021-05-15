@@ -8,14 +8,14 @@ declare global {
   }
 }
 
-Map.prototype.asyncStream = function() {
+Map.prototype.asyncStream = function () {
   return asyncStreamIterable(this);
 };
 
-Map.prototype.asyncStreamKeys = function() {
+Map.prototype.asyncStreamKeys = function () {
   return asyncStreamIterable(this.keys());
 };
 
-Map.prototype.asyncStreamValues = function() {
+Map.prototype.asyncStreamValues = function () {
   return asyncStreamIterable(this.values());
 };

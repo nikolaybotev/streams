@@ -8,6 +8,6 @@ declare module "stream" {
   }
 }
 
-Readable.prototype.streamLines = function(encoding?: BufferEncoding) {
+Readable.prototype.streamLines = function (encoding?: BufferEncoding) {
   return streamLines(this, encoding);
 };

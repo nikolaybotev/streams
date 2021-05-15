@@ -6,6 +6,6 @@ declare global {
   }
 }
 
-String.prototype.charAsyncStream = function() {
+String.prototype.charAsyncStream = function () {
   return asyncStreamIterable(this);
 };

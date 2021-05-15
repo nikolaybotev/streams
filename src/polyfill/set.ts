@@ -6,6 +6,6 @@ declare global {
   }
 }
 
-Set.prototype.asyncStream = function() {
+Set.prototype.asyncStream = function () {
   return asyncStreamIterable(this);
 };

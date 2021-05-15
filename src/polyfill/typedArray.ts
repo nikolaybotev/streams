@@ -30,30 +30,30 @@ declare global {
   }
 }
 
-Int8Array.prototype.asyncStream = function() {
+Int8Array.prototype.asyncStream = function () {
   return asyncStreamIterable(this);
 };
-Uint8Array.prototype.asyncStream = function() {
+Uint8Array.prototype.asyncStream = function () {
   return asyncStreamIterable(this);
 };
-Uint8ClampedArray.prototype.asyncStream = function() {
+Uint8ClampedArray.prototype.asyncStream = function () {
   return asyncStreamIterable(this);
 };
-Int16Array.prototype.asyncStream = function() {
+Int16Array.prototype.asyncStream = function () {
   return asyncStreamIterable(this);
 };
-Uint16Array.prototype.asyncStream = function() {
+Uint16Array.prototype.asyncStream = function () {
   return asyncStreamIterable(this);
 };
-Int32Array.prototype.asyncStream = function() {
+Int32Array.prototype.asyncStream = function () {
   return asyncStreamIterable(this);
 };
-Uint32Array.prototype.asyncStream = function() {
+Uint32Array.prototype.asyncStream = function () {
   return asyncStreamIterable(this);
 };
-Float32Array.prototype.asyncStream = function() {
+Float32Array.prototype.asyncStream = function () {
   return asyncStreamIterable(this);
 };
-Float64Array.prototype.asyncStream = function() {
+Float64Array.prototype.asyncStream = function () {
   return asyncStreamIterable(this);
 };
