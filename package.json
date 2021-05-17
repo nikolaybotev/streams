@@ -24,14 +24,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nikolaybotevb/streams.git"
+    "url": "https://github.com/nikolaybotev/streams.git"
   },
   "author": "Nikolay Botev",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/nikolaybotevb/streams/issues"
+    "url": "https://github.com/nikolaybotev/streams/issues"
   },
-  "homepage": "https://github.com/nikolaybotevb/streams",
+  "homepage": "https://github.com/nikolaybotev/streams",
   "jest": {
     "rootDir": "./src",
     "coverageDirectory": "../coverage",
