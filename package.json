@@ -6,11 +6,18 @@
   "config": {
     "pretty_files": "**/*.md src/**/*.ts !**/build/**/*"
   },
+  "files": [
+    "**/*.js",
+    "**/*.d.ts"
+  ],
   "scripts": {
     "build": "run-s clean tsc",
     "clean": "del-cli '**/*.js' '**/*.d.ts' '!node_modules'",
     "format:check": "prettier --check $npm_package_config_pretty_files",
     "format:fix": "prettier --write $npm_package_config_pretty_files",
+    "prepare": "npm run build",
+    "prepublishOnly": "run-s format:check test",
+    "preversion": "run-s format:check",
     "test": "jest",
     "tsc": "tsc",
     "tscw": "tsc --watch --listEmittedFiles"
