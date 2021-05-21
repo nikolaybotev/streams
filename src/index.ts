@@ -306,6 +306,14 @@ export function streamAsyncIterable<T>(
   return new AsyncStreamOfIterator(itrbl[Symbol.asyncIterator]());
 }
 
-export function asyncStream<T>(it: AsyncIterator<T, any>): AsyncStream<T> {
-  return new AsyncStreamOfIterator(it);
+export function asyncStream<T>(
+  it: Iterable<T> | AsyncIterable<T> | AsyncIterator<T, any>
+): AsyncStream<T> {
+  if (typeof it[Symbol.iterator] === "function") {
+    return asyncStreamIterable(it as Iterable<T>);
+  }
+  if (typeof it[Symbol.asyncIterator] === "function") {
+    return streamAsyncIterable(it as AsyncIterable<T>);
+  }
+  return new AsyncStreamOfIterator(it as AsyncIterator<T, any>);
 }
