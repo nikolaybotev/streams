@@ -29,6 +29,7 @@ export interface AsyncStream<T> extends AsyncIterable<T> {
   last(predicate: (_: T) => boolean): Promise<T | null>;
   max(comparator: (a: T, b: T) => number): Promise<T | null>;
   min(comparator: (a: T, b: T) => number): Promise<T | null>;
+  toArray(): Promise<T[]>;
 }
 
 class AsyncStreamOfIterator<T> implements AsyncStream<T> {
@@ -284,6 +285,14 @@ class AsyncStreamOfIterator<T> implements AsyncStream<T> {
       } else {
         result = adder(result, v);
       }
+    }
+    return result;
+  }
+
+  async toArray(): Promise<T[]> {
+    const result = [] as T[];
+    for await (const v of this) {
+      result.push(v);
     }
     return result;
   }
