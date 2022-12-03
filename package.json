@@ -4,7 +4,7 @@
   "description": "A lazy streams library for functional composition in JavaScript.",
   "main": "index.js",
   "config": {
-    "pretty_files": "**/*.md src/**/*.ts !**/build/**/*"
+    "pretty_files": "**/*.md **/*.yml src/**/*.ts !**/build/**/*"
   },
   "files": [
     "**/*.js",
