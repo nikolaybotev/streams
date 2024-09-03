@@ -15,7 +15,7 @@ function logger() {
   return log;
 }
 
-test("generator without return statement has expected order of operations", () => {
+test("async generator without return statement has expected order of operations", () => {
   const log = logger();
   function* x(): Generator<number> {
     log("begin");
@@ -39,7 +39,7 @@ test("generator without return statement has expected order of operations", () =
   ])
 });
 
-test("generator completes before exception is handled", async () => {
+test("async generator completes before exception is handled", async () => {
   const log = logger();
 
   function* x(): Generator<number> {
@@ -82,7 +82,7 @@ test("generator completes before exception is handled", async () => {
   ]);
 });
 
-test("generator with return statement has expected order of operations", async () => {
+test("async generator with return statement has expected order of operations", async () => {
   const log = logger();
   async function* generator(): AsyncGenerator<number> {
     log("generator enters");
@@ -111,7 +111,7 @@ test("generator with return statement has expected order of operations", async (
   ]);
 });
 
-test("generator consumed via for loop has return value ignored", async () => {
+test("async generator consumed via for loop has return value ignored", async () => {
   const log = logger();
   async function* generator(): AsyncGenerator<number> {
     log("generator enters");
@@ -225,4 +225,45 @@ test("async generator consumed with for loop early return delays return", async 
   expect(await x.next()).toEqual({ value: 10, done: false }); // skipped 9!
   expect(await x.next()).toEqual({ value: undefined, done: true });
   expect(log.output).toEqual(["finally", "after", "finally end"]);
+});
+
+test("async generator does not pass through next() and return() arguments", async () => {
+  const log = logger();
+  const iter = {
+    seen: false,
+
+    async next(...args) {
+      log("NEXT", ...args);
+      if (this.seen) {
+        return { value: undefined, done: true };
+      } else {
+        this.seen = true;
+        return { value: 1, done: false };
+      }
+    },
+
+    async return(value) {
+      log("RETURN", value);
+      this.seen = true;
+      return { value, done: true };
+    },
+
+    [Symbol.asyncIterator]() {
+      return this;
+    }
+  }
+
+  async function *gen() {
+    for await (const v of iter) {
+      yield v * 2;
+    }
+
+    return "nay";
+  }
+
+  const it2 = gen();
+
+  expect(await it2.next("HELLO")).toEqual({ value: 2, done: false });
+  expect(await it2.return("YAY")).toEqual({ value: "YAY", done: true });
+  expect(log.output).toEqual(["NEXT", "RETURN", undefined]);
 });
