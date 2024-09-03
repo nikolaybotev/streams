@@ -51,7 +51,7 @@ export function readableAsyncIterator<T, R>(
   let remainder = by.initial();
 
   const dataListener = (chunk: Buffer) => {
-    let [items, nextRemainder] = by.split(chunk, remainder);
+    const [items, nextRemainder] = by.split(chunk, remainder);
 
     items.forEach(pipe.put);
 

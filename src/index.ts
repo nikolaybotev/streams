@@ -13,7 +13,7 @@ export interface AsyncStream<T> extends AsyncIterable<T> {
   peek(observer: (_: T) => void): AsyncStream<T>;
 
   // Terminal operations
-  forEach(block: (_: T) => any | Promise<any>): Promise<void>;
+  forEach(block: (_: T) => unknown | Promise<unknown>): Promise<void>;
   collect<A, R>(
     container: A,
     accumulator: (a: A, t: T) => void,
@@ -33,7 +33,7 @@ export interface AsyncStream<T> extends AsyncIterable<T> {
 }
 
 class AsyncStreamOfIterator<T> implements AsyncStream<T> {
-  constructor(private readonly iterator: AsyncIterator<T, any>) {}
+  constructor(private readonly iterator: AsyncIterator<T>) {}
 
   [Symbol.asyncIterator]() {
     return this.iterator;
@@ -174,7 +174,7 @@ class AsyncStreamOfIterator<T> implements AsyncStream<T> {
     return new AsyncStreamOfIterator(peeked(this));
   }
 
-  async forEach(block: (_: T) => any | Promise<any>): Promise<void> {
+  async forEach(block: (_: T) => unknown | Promise<unknown>): Promise<void> {
     for await (const v of this) {
       await block(v);
     }
@@ -228,7 +228,7 @@ class AsyncStreamOfIterator<T> implements AsyncStream<T> {
 
   async count(): Promise<number> {
     let count = 0;
-    for await (const v of this) {
+    for await (const _ of this) {
       count += 1;
     }
     return count;
@@ -316,7 +316,7 @@ export function streamAsyncIterable<T>(
 }
 
 export function asyncStream<T>(
-  it: Iterable<T> | AsyncIterable<T> | AsyncIterator<T, any>
+  it: Iterable<T> | AsyncIterable<T> | AsyncIterator<T>
 ): AsyncStream<T> {
   if (typeof it[Symbol.iterator] === "function") {
     return asyncStreamIterable(it as Iterable<T>);
@@ -324,5 +324,5 @@ export function asyncStream<T>(
   if (typeof it[Symbol.asyncIterator] === "function") {
     return streamAsyncIterable(it as AsyncIterable<T>);
   }
-  return new AsyncStreamOfIterator(it as AsyncIterator<T, any>);
+  return new AsyncStreamOfIterator(it as AsyncIterator<T>);
 }

@@ -12,7 +12,7 @@ function stringSplitter(encoding?: BufferEncoding): Splitter<Buffer, string, str
       const lines = chunk.toString(encoding).split("\n");
 
       lines[0] = previous + lines[0];
-      let remainder = lines.pop() ?? "";
+      const remainder = lines.pop() ?? "";
 
       return [lines, remainder];
     },

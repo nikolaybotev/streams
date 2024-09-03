@@ -1,12 +1,11 @@
 test("a", () => {
-  let i: Iterable<any> = [];
-  function* x(g: (_: any) => any = _ => _): Generator<number> {
+  function* x(g: (_: number) => number = _ => _): Generator<number> {
     console.log("begin");
     yield g(0);
     console.log("end");
   }
 
-  let a = x();
+  const a = x();
 
   console.log("gen");
   console.log(a.next());
@@ -15,8 +14,7 @@ test("a", () => {
 });
 
 test("b", async () => {
-  let i: Iterable<any> = [];
-  function* x(g: (_: any) => any = _ => _): Generator<number> {
+  function* x(g: (_: number) => number = _ => _): Generator<number> {
     try {
       console.log("begin");
       yield g(0);
@@ -45,14 +43,14 @@ test("b", async () => {
 });
 
 test("as", async () => {
-  async function* x(g: (_: any) => any = _ => _): AsyncGenerator<number> {
+  async function* x(g: (_: number) => number = _ => _): AsyncGenerator<number> {
     console.log("begin");
     yield g(0);
     console.log("end");
     return "yes";
   }
 
-  let a = x();
+  const a = x();
 
   console.log("next1");
   console.log(await a.next());
