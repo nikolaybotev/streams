@@ -15,6 +15,61 @@ function logger() {
   return log;
 }
 
+test("async is eager", async () => {
+  const log = logger();
+  async function eager() {
+    log("started");
+    return new Promise(resolve => {
+      setTimeout(() => {
+        log("resolving");
+        resolve(42);
+      }, 1);
+    });
+  }
+
+  const result = eager();
+  log("called");
+  const resolved = await result;
+  log(resolved);
+
+  expect(log.output).toEqual(["started", "called", "resolving", 42]);
+});
+
+test("generator is lazy", async () => {
+  const log = logger();
+  async function *lazy() {
+    log("started");
+    yield 42;
+  }
+
+  const result = lazy();
+  log("called");
+  for await (const x of result) {
+    log(x);
+  }
+
+  expect(log.output).toEqual(["called", "started", 42]);
+});
+
+test("awaiting a non-promise is a suspending operation", async () => {
+  const log = logger();
+  function simple() {
+    log("simple");
+    return 42;
+  }
+  async function awaiter() {
+    const val = await simple();
+    log("awaited", val);
+    return val * 2;
+  }
+
+  const result = awaiter();
+  log("called");
+  log(await result);
+
+  expect(log.output).toEqual(["simple", "called", "awaited", 42, 84]);
+});
+
 test("async generator without return statement has expected order of operations", () => {
   const log = logger();
   function* x(): Generator<number> {
