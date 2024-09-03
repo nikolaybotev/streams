@@ -19,8 +19,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Perform npm ci (includes format:check, build and test)
+      - name: Run npm cit (clean install, prpare (build) and test)
         run: |
-          npm ci
+          npm cit
         env:
           CI: true
