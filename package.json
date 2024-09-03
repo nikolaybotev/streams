@@ -11,13 +11,13 @@
     "**/*.d.ts"
   ],
   "scripts": {
-    "build": "run-s clean tsc",
+    "build": "run-s format:check clean tsc",
     "clean": "del-cli '**/*.js' '**/*.d.ts' '!node_modules'",
     "format:check": "prettier --check $npm_package_config_pretty_files",
     "format:fix": "prettier --write $npm_package_config_pretty_files",
-    "prepare": "run-s format:check build test",
-    "prepublishOnly": "run-s format:check test",
-    "preversion": "run-s format:check",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test",
+    "preversion": "run-s build test",
     "test": "jest",
     "tsc": "tsc",
     "tscw": "tsc --watch --listEmittedFiles"
