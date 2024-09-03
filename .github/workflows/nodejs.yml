@@ -25,6 +25,7 @@ jobs:
       - name: Perform npm install, build, and test
         run: |
           npm ci
+          npm run format:check
           npm run build --if-present
           npm test -- --color=true
         env:
