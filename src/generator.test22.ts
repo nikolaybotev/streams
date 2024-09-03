@@ -1,6 +1,6 @@
 // These tests are disabled by default. Run these tests by:
 //
-//   npm test -- --testRegex test20
+//   npm test -- --testRegex test22
 //
 
 test("generator mapping", () => {
@@ -10,7 +10,7 @@ test("generator mapping", () => {
     const s = Array.from(a.map(it => it * it)).join();
     expect(s).toEqual('1,4,9');
 });
-  
+
 test("generator for mapping", () => {
     function *gen() {
         yield 1;
