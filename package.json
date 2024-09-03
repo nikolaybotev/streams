@@ -15,7 +15,7 @@
     "clean": "del-cli '**/*.js' '**/*.d.ts' '!node_modules'",
     "format:check": "prettier --check $npm_package_config_pretty_files",
     "format:fix": "prettier --write $npm_package_config_pretty_files",
-    "prepare": "npm run build",
+    "prepare": "run-s format:check build test",
     "prepublishOnly": "run-s format:check test",
     "preversion": "run-s format:check",
     "test": "jest",
