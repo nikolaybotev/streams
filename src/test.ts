@@ -132,6 +132,97 @@ test("generator consumed via for loop has return value ignored", async () => {
   ]);
 })
 
+test("async generator sent early return skips remainder of generator function body", async () => {
+  async function *gen1() {
+    yield 1;
+    yield 2;
+
+    return 3;
+  }
+  
+  const x = gen1();
+
+  expect(await x.next()).toEqual({ value: 1, done: false });
+  expect(await x.return(5)).toEqual({ value: 5, done: true });
+  expect(await x.next()).toEqual({ value: undefined, done: true });
+});
+
+test("async generator enforces return value on early return", async () => {
+  async function *gen1() {
+    try {
+      yield 1;
+      yield 2;
+    } finally {
+      // eslint-disable-next-line no-unsafe-finally
+      return 9;
+    }
+  }
+
+  const x = gen1();
+
+  expect(await x.next()).toEqual({ value: 1, done: false });
+  expect(await x.return(5)).toEqual({ value: 9, done: true });
+  expect(await x.next()).toEqual({ value: undefined, done: true });
+});
+
+test("async generator sent early return delays return", async () => {
+  const log = logger();
+  async function *gen1() {
+    try {
+      yield 1;
+      log("NEVER - after first yield");
+      yield 2;
+    } finally {
+      log("finally");
+      yield 9;
+      yield 10;
+      log("finally end");
+    }
+    log("NEVER");
+    return 11;
+  }
+  const x = gen1();
+
+  expect(await x.next()).toEqual({ value: 1, done: false });
+  expect(await x.return(5)).toEqual({ value: 9, done: false });
+  log("after early return");
+  expect(await x.next()).toEqual({ value: 10, done: false });
+  expect(await x.next()).toEqual({ value: 5, done: true }); // unexpected!
+  expect(await x.next()).toEqual({ value: undefined, done: true });
+  expect(log.output).toEqual(["finally", "after early return", "finally end"]);
+});
+
+test("async generator consumed with for loop early return delays return", async () => {
+  const log = logger();
+  async function *gen1() {
+    try {
+      yield 1;
+      yield 2;
+    } finally {
+      log("finally");
+      yield 9;
+      yield 10;
+      log("finally end");
+    }
+    log("return");
+    return 11;
+  }
+
+  const x = gen1();
+
+  for await (const n of x) {
+    expect(n).toBe(1);
+    if (n == 1) {
+      break;
+    }
+  }
+  log("after");
+
+  expect(await x.next()).toEqual({ value: 10, done: false }); // skipped 9!
+  expect(await x.next()).toEqual({ value: undefined, done: true });
+  expect(log.output).toEqual(["finally", "after", "finally end"]);
+});
+
 test("some() consumes iterator", async () => {
   // See https://github.com/tc39/proposal-iterator-helpers?tab=readme-ov-file#somefn
 });
