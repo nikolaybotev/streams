@@ -1,4 +1,4 @@
-import { AsyncStream, asyncStream } from "./index";
+import { AsyncStream } from "./index";
 
 export function streamRange(
   startInclusive: number,
@@ -9,7 +9,7 @@ export function streamRange(
       yield i;
     }
   }
-  return asyncStream(rangeSource());
+  return AsyncStream.fromIterator(rangeSource());
 }
 
 export function streamClosedRange(
@@ -21,5 +21,5 @@ export function streamClosedRange(
       yield i;
     }
   }
-  return asyncStream(rangeSource());
+  return AsyncStream.fromIterator(rangeSource());
 }

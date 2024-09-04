@@ -1,4 +1,4 @@
-import { AsyncStream, asyncStream } from "./index";
+import { AsyncStream } from "./index";
 
 export function streamRepeated<T>(value: T, count: number): AsyncStream<T> {
   async function* repeatedSource() {
@@ -6,5 +6,5 @@ export function streamRepeated<T>(value: T, count: number): AsyncStream<T> {
       yield value;
     }
   }
-  return asyncStream(repeatedSource());
+  return AsyncStream.fromIterator(repeatedSource());
 }

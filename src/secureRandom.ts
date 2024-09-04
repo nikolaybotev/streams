@@ -1,4 +1,4 @@
-import { AsyncStream, asyncStream } from "./index";
+import { AsyncStream } from "./index";
 import { promisify } from "util";
 import { randomBytes as randomBytesCb } from "crypto";
 
@@ -16,5 +16,5 @@ export function streamSecureRandomBytes(
     }
   }
 
-  return asyncStream(secureRandomSource());
+  return AsyncStream.fromIterator(secureRandomSource());
 }

@@ -1,4 +1,4 @@
-import { AsyncStream, asyncStreamIterable } from "../index";
+import { AsyncStream } from "../index";
 
 declare global {
   interface Int8Array {
@@ -31,29 +31,29 @@ declare global {
 }
 
 Int8Array.prototype.asyncStream = function () {
-  return asyncStreamIterable(this);
+  return AsyncStream.fromIterable(this);
 };
 Uint8Array.prototype.asyncStream = function () {
-  return asyncStreamIterable(this);
+  return AsyncStream.fromIterable(this);
 };
 Uint8ClampedArray.prototype.asyncStream = function () {
-  return asyncStreamIterable(this);
+  return AsyncStream.fromIterable(this);
 };
 Int16Array.prototype.asyncStream = function () {
-  return asyncStreamIterable(this);
+  return AsyncStream.fromIterable(this);
 };
 Uint16Array.prototype.asyncStream = function () {
-  return asyncStreamIterable(this);
+  return AsyncStream.fromIterable(this);
 };
 Int32Array.prototype.asyncStream = function () {
-  return asyncStreamIterable(this);
+  return AsyncStream.fromIterable(this);
 };
 Uint32Array.prototype.asyncStream = function () {
-  return asyncStreamIterable(this);
+  return AsyncStream.fromIterable(this);
 };
 Float32Array.prototype.asyncStream = function () {
-  return asyncStreamIterable(this);
+  return AsyncStream.fromIterable(this);
 };
 Float64Array.prototype.asyncStream = function () {
-  return asyncStreamIterable(this);
+  return AsyncStream.fromIterable(this);
 };

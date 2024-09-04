@@ -1,4 +1,4 @@
-import { AsyncStream, asyncStreamIterable } from "../index";
+import { AsyncStream } from "../index";
 
 declare global {
   interface Array<T> {
@@ -7,5 +7,5 @@ declare global {
 }
 
 Array.prototype.asyncStream = function () {
-  return asyncStreamIterable(this);
+  return AsyncStream.fromIterable(this);
 };

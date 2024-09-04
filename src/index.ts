@@ -1,4 +1,18 @@
 /**
+ * An object containing factory methods for AsyncStream.
+ *
+ * ```
+ * AsyncStream.from([1, 2, 3]).map(x => x * 2).forEach(console.log);
+ * ```
+ */
+export const AsyncStream = {
+  from: asyncStreamFrom,
+  fromAsyncIterable: asyncStreamFromAsyncIterable,
+  fromIterable: asyncStreamFromIterable,
+  fromIterator: asyncStreamFromIterator,
+};
+
+/**
  * An asynchronous stream that produces elements of type `T` on demand.
  *
  * This is an extension of the built-in `AsyncIterable<T>` protocol.
@@ -203,6 +217,10 @@ export interface AsyncStream<T> extends AsyncIterableIterator<T> {
    */
   toArray(): Promise<T[]>;
 }
+
+//
+// AsyncStream Implementation
+//
 
 class AsyncStreamOfIterator<T>
   implements AsyncStream<T>, AsyncIterableIterator<T>
@@ -524,9 +542,11 @@ class AsyncStreamOfIterator<T>
   }
 }
 
-// Stream Sources
+//
+// AsyncStream Factories
+//
 
-export function asyncStreamIterable<T>(itrbl: Iterable<T>): AsyncStream<T> {
+function asyncStreamFromIterable<T>(itrbl: Iterable<T>): AsyncStream<T> {
   async function* iterableSource() {
     for (const e of itrbl) {
       yield e;
@@ -535,20 +555,26 @@ export function asyncStreamIterable<T>(itrbl: Iterable<T>): AsyncStream<T> {
   return new AsyncStreamOfIterator(iterableSource());
 }
 
-export function streamAsyncIterable<T>(
+function asyncStreamFromAsyncIterable<T>(
   itrbl: AsyncIterable<T>,
 ): AsyncStream<T> {
   return new AsyncStreamOfIterator(itrbl[Symbol.asyncIterator]());
 }
 
-export function asyncStream<T>(
+function asyncStreamFromIterator<T>(
+  it: Iterator<T> | AsyncIterator<T>,
+): AsyncStream<T> {
+  return new AsyncStreamOfIterator(it as AsyncIterator<T>);
+}
+
+function asyncStreamFrom<T>(
   it: Iterable<T> | Iterator<T> | AsyncIterable<T> | AsyncIterator<T>,
 ): AsyncStream<T> {
-  if (typeof it[Symbol.iterator] === "function") {
-    return asyncStreamIterable(it as Iterable<T>);
-  }
   if (typeof it[Symbol.asyncIterator] === "function") {
-    return streamAsyncIterable(it as AsyncIterable<T>);
+    return asyncStreamFromAsyncIterable(it as AsyncIterable<T>);
   }
-  return new AsyncStreamOfIterator(it as AsyncIterator<T>);
+  if (typeof it[Symbol.iterator] === "function") {
+    return asyncStreamFromIterable(it as Iterable<T>);
+  }
+  return asyncStreamFromIterator(it as AsyncIterator<T> | Iterator<T>);
 }

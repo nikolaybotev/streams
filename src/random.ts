@@ -1,4 +1,4 @@
-import { AsyncStream, asyncStream } from "./index";
+import { AsyncStream } from "./index";
 
 export function streamRandomBytes(): AsyncStream<number> {
   async function* randomSource() {
@@ -7,5 +7,5 @@ export function streamRandomBytes(): AsyncStream<number> {
     }
   }
 
-  return asyncStream(randomSource());
+  return AsyncStream.fromIterator(randomSource());
 }
