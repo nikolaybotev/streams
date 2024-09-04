@@ -70,6 +70,19 @@ test("awaiting a non-promise is a suspending operation", async () => {
   expect(log.output).toEqual(["simple", "called", "awaited", 42, 84]);
 });
 
+test("for-await works on a generator", async () => {
+  function* gen() {
+    yield* [1, 2, 3];
+  }
+
+  let result = 0;
+  for await (const n of gen()) {
+    result += n;
+  }
+
+  expect(result).toBe(6);
+});
+
 test("async generator without return statement has expected order of operations", () => {
   const log = logger();
   function* x(): Generator<number> {

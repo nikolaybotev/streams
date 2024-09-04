@@ -32,7 +32,7 @@ export interface AsyncStream<T> extends AsyncIterable<T> {
   toArray(): Promise<T[]>;
 }
 
-class AsyncStreamOfIterator<T> implements AsyncStream<T> {
+class AsyncStreamOfIterator<T> implements AsyncStream<T>, AsyncIterable<T> {
   constructor(private readonly iterator: AsyncIterator<T>) {}
 
   [Symbol.asyncIterator]() {
@@ -316,7 +316,7 @@ export function streamAsyncIterable<T>(
 }
 
 export function asyncStream<T>(
-  it: Iterable<T> | AsyncIterable<T> | AsyncIterator<T>,
+  it: Iterable<T> | Iterator<T> | AsyncIterable<T> | AsyncIterator<T>,
 ): AsyncStream<T> {
   if (typeof it[Symbol.iterator] === "function") {
     return asyncStreamIterable(it as Iterable<T>);
