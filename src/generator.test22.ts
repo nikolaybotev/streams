@@ -38,6 +38,18 @@ test("reduce of empty iterator throws TypeError", () => {
   expect(s).toThrow(TypeError);
 });
 
+test("reduce of empty iterator with undefined initial element returns undefined", () => {
+  function* gen() {
+    // Empty iterator
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const a = gen() as any;
+
+  const s = a.reduce((a, b) => a + b, undefined);
+
+  expect(s).toBeUndefined();
+});
+
 test("reduce of single-element iterator returns single element", () => {
   function* gen() {
     yield 42;
