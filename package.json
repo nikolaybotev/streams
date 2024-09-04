@@ -3,9 +3,6 @@
   "version": "0.0.15",
   "description": "A lazy streams library for functional composition in JavaScript.",
   "main": "index.js",
-  "config": {
-    "pretty_files": "**/*.md **/*.yml src/**/*.ts !**/build/**/*"
-  },
   "files": [
     "**/*.js",
     "**/*.d.ts"
@@ -14,8 +11,8 @@
     "build": "run-s format:check eslint clean tsc",
     "clean": "del-cli '**/*.js' '**/*.d.ts' '!node_modules'",
     "eslint": "eslint src",
-    "format:check": "prettier --check $npm_package_config_pretty_files",
-    "format:fix": "prettier --write $npm_package_config_pretty_files",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write .",
     "lint": "npm run eslint",
     "prepare": "npm run build",
     "prepublishOnly": "npm test",
