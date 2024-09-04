@@ -30,7 +30,7 @@ function makePipe<T>() {
       return Promise.resolve({ done: true, value: undefined });
     }
 
-    return new Promise<IteratorResult<T>>(resolve => takes.push(resolve));
+    return new Promise<IteratorResult<T>>((resolve) => takes.push(resolve));
   }
 
   return { put, next, close };
@@ -44,7 +44,7 @@ export interface Splitter<B, T, R> {
 
 export function readableAsyncIterator<T, R>(
   readable: Readable,
-  by: Splitter<Buffer, T, R>
+  by: Splitter<Buffer, T, R>,
 ): AsyncIterator<T> {
   const { next, ...pipe } = makePipe<T>();
 
