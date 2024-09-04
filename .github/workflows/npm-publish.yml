@@ -7,13 +7,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 14
+        uses: actions/setup-node@v4
         with:
-          node-version: 14
+          node-version: 18
           registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm publish --access public
+
+      - name: Run npm ci
+        run: |
+          npm ci
+
+      - name: Run npm publish
+        run: |
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

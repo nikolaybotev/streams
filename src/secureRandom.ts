@@ -5,7 +5,7 @@ import { randomBytes as randomBytesCb } from "crypto";
 const randomBytes = promisify<number, Buffer>(randomBytesCb);
 
 export function streamSecureRandomBytes(
-  bufferSize: number = 64
+  bufferSize: number = 64,
 ): AsyncStream<number> {
   async function* secureRandomSource() {
     while (true) {

@@ -8,7 +8,7 @@ function logger() {
   const log = (...s: unknown[]) => {
     output.push(...s);
     console.log(...s);
-  }
+  };
 
   log.output = output;
 
@@ -19,7 +19,7 @@ test("async is eager", async () => {
   const log = logger();
   async function eager() {
     log("started");
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         log("resolving");
         resolve(42);
@@ -37,7 +37,7 @@ test("async is eager", async () => {
 
 test("generator is lazy", async () => {
   const log = logger();
-  async function *lazy() {
+  async function* lazy() {
     log("started");
     yield 42;
   }
@@ -90,8 +90,8 @@ test("async generator without return statement has expected order of operations"
     { value: 0, done: false },
     "end",
     { value: undefined, done: true },
-    "donee"
-  ])
+    "donee",
+  ]);
 });
 
 test("async generator completes before exception is handled", async () => {
@@ -133,7 +133,7 @@ test("async generator completes before exception is handled", async () => {
     "GOT 1 elem",
     "finally",
     "TRAPPED in test",
-    "OOOOPS!!!"
+    "OOOOPS!!!",
   ]);
 });
 
@@ -189,16 +189,16 @@ test("async generator consumed via for loop has return value ignored", async () 
     "after for-await",
     { value: undefined, done: true }, // the return value is lost when iterator is consumed using "for [await] of"
   ]);
-})
+});
 
 test("async generator sent early return skips remainder of generator function body", async () => {
-  async function *gen1() {
+  async function* gen1() {
     yield 1;
     yield 2;
 
     return 3;
   }
-  
+
   const x = gen1();
 
   expect(await x.next()).toEqual({ value: 1, done: false });
@@ -207,7 +207,7 @@ test("async generator sent early return skips remainder of generator function bo
 });
 
 test("async generator enforces return value on early return", async () => {
-  async function *gen1() {
+  async function* gen1() {
     try {
       yield 1;
       yield 2;
@@ -226,7 +226,7 @@ test("async generator enforces return value on early return", async () => {
 
 test("async generator sent early return delays return", async () => {
   const log = logger();
-  async function *gen1() {
+  async function* gen1() {
     try {
       yield 1;
       log("NEVER - after first yield");
@@ -253,7 +253,7 @@ test("async generator sent early return delays return", async () => {
 
 test("async generator consumed with for loop early return delays return", async () => {
   const log = logger();
-  async function *gen1() {
+  async function* gen1() {
     try {
       yield 1;
       yield 2;
@@ -305,10 +305,10 @@ test("async generator does not pass through next() and return() arguments", asyn
 
     [Symbol.asyncIterator]() {
       return this;
-    }
-  }
+    },
+  };
 
-  async function *gen() {
+  async function* gen() {
     for await (const v of iter) {
       yield v * 2;
     }

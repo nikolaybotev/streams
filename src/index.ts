@@ -17,7 +17,7 @@ export interface AsyncStream<T> extends AsyncIterable<T> {
   collect<A, R>(
     container: A,
     accumulator: (a: A, t: T) => void,
-    finisher: (_: A) => R
+    finisher: (_: A) => R,
   ): Promise<R>;
   reduceLeft<R>(initial: R, accumulator: (r: R, t: T) => R): Promise<R>;
   reduce(accumulator: (a: T, b: T) => T): Promise<T | null>;
@@ -78,7 +78,7 @@ class AsyncStreamOfIterator<T> implements AsyncStream<T> {
   }
 
   flatMapAwait<U>(
-    transform: (_: T) => Promise<AsyncStream<U>>
+    transform: (_: T) => Promise<AsyncStream<U>>,
   ): AsyncStream<U> {
     async function* flatMapAwaited(it: AsyncStream<T>) {
       for await (const nested of it) {
@@ -183,7 +183,7 @@ class AsyncStreamOfIterator<T> implements AsyncStream<T> {
   async collect<A, R>(
     container: A,
     accumulator: (a: A, t: T) => void,
-    finisher: (_: A) => R
+    finisher: (_: A) => R,
   ): Promise<R> {
     for await (const v of this) {
       accumulator(container, v);
@@ -310,13 +310,13 @@ export function asyncStreamIterable<T>(itrbl: Iterable<T>): AsyncStream<T> {
 }
 
 export function streamAsyncIterable<T>(
-  itrbl: AsyncIterable<T>
+  itrbl: AsyncIterable<T>,
 ): AsyncStream<T> {
   return new AsyncStreamOfIterator(itrbl[Symbol.asyncIterator]());
 }
 
 export function asyncStream<T>(
-  it: Iterable<T> | AsyncIterable<T> | AsyncIterator<T>
+  it: Iterable<T> | AsyncIterable<T> | AsyncIterator<T>,
 ): AsyncStream<T> {
   if (typeof it[Symbol.iterator] === "function") {
     return asyncStreamIterable(it as Iterable<T>);

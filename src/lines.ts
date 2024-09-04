@@ -2,7 +2,9 @@ import { Readable } from "stream";
 import { AsyncStream, asyncStream } from "./index";
 import { Splitter, readableAsyncIterator } from "./readableAsyncIterator";
 
-function stringSplitter(encoding?: BufferEncoding): Splitter<Buffer, string, string> {
+function stringSplitter(
+  encoding?: BufferEncoding,
+): Splitter<Buffer, string, string> {
   return {
     initial() {
       return "";
@@ -19,13 +21,13 @@ function stringSplitter(encoding?: BufferEncoding): Splitter<Buffer, string, str
 
     last(remainder: string) {
       return remainder != "" ? remainder : null;
-    }
+    },
   };
 }
 
 export function streamLines(
   readable: Readable,
-  encoding?: BufferEncoding
+  encoding?: BufferEncoding,
 ): AsyncStream<string> {
   return asyncStream(readableAsyncIterator(readable, stringSplitter(encoding)));
 }

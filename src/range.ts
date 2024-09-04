@@ -2,7 +2,7 @@ import { AsyncStream, asyncStream } from "./index";
 
 export function streamRange(
   startInclusive: number,
-  endExclusive: number
+  endExclusive: number,
 ): AsyncStream<number> {
   async function* rangeSource() {
     for (let i = startInclusive; i < endExclusive; i++) {
@@ -14,7 +14,7 @@ export function streamRange(
 
 export function streamClosedRange(
   startInclusive: number,
-  endInclusive: number
+  endInclusive: number,
 ): AsyncStream<number> {
   async function* rangeSource() {
     for (let i = startInclusive; i <= endInclusive; i++) {
