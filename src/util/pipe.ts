@@ -11,7 +11,7 @@ export function makePipe<T>() {
 
   function put(message: Message) {
     if (closed) {
-      return;
+      return Promise.resolve();
     }
     const nextInLine = takes.shift();
 
