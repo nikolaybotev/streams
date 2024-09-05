@@ -1,5 +1,5 @@
 import "./factories";
-import { iteratorInterval } from "./source/interval";
+import { iteratorInterval } from "./sources/interval";
 import { logger } from "./behavior.test";
 
 test("some() consumes iterator", async () => {

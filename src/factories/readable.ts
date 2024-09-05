@@ -1,5 +1,5 @@
 import { Readable, Duplex } from "node:stream";
-import { readLines } from "../source/lines";
+import { readLines } from "../sources/lines";
 
 declare module "node:stream" {
   interface Readable {

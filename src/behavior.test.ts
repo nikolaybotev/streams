@@ -3,7 +3,7 @@
 //
 
 import "./factories/asyncIterator";
-import { iteratorInterval } from "./source/interval";
+import { iteratorInterval } from "./sources/interval";
 
 export function logger() {
   const output: unknown[] = [];

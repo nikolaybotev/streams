@@ -2,7 +2,7 @@
 //
 
 import "./factories/asyncIterator";
-import { iteratorInterval } from "./source/interval";
+import { iteratorInterval } from "./sources/interval";
 
 describe("tests that require Iterator Helpers", () => {
   // Skip these tests if the runtime does not have Iterator Helpers implemented
