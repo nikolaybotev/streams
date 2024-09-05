@@ -2,58 +2,58 @@ import { AsyncIterableStream } from "../index";
 
 declare global {
   interface Int8Array {
-    asyncStream(): AsyncIterableStream<number>;
+    streamAsync(): AsyncIterableStream<number>;
   }
   interface Uint8Array {
-    asyncStream(): AsyncIterableStream<number>;
+    streamAsync(): AsyncIterableStream<number>;
   }
   interface Uint8ClampedArray {
-    asyncStream(): AsyncIterableStream<number>;
+    streamAsync(): AsyncIterableStream<number>;
   }
   interface Int16Array {
-    asyncStream(): AsyncIterableStream<number>;
+    streamAsync(): AsyncIterableStream<number>;
   }
   interface Uint16Array {
-    asyncStream(): AsyncIterableStream<number>;
+    streamAsync(): AsyncIterableStream<number>;
   }
   interface Int32Array {
-    asyncStream(): AsyncIterableStream<number>;
+    streamAsync(): AsyncIterableStream<number>;
   }
   interface Uint32Array {
-    asyncStream(): AsyncIterableStream<number>;
+    streamAsync(): AsyncIterableStream<number>;
   }
   interface Float32Array {
-    asyncStream(): AsyncIterableStream<number>;
+    streamAsync(): AsyncIterableStream<number>;
   }
   interface Float64Array {
-    asyncStream(): AsyncIterableStream<number>;
+    streamAsync(): AsyncIterableStream<number>;
   }
 }
 
-Int8Array.prototype.asyncStream = function () {
+Int8Array.prototype.streamAsync = function () {
   return AsyncIterableStream.from(this);
 };
-Uint8Array.prototype.asyncStream = function () {
+Uint8Array.prototype.streamAsync = function () {
   return AsyncIterableStream.from(this);
 };
-Uint8ClampedArray.prototype.asyncStream = function () {
+Uint8ClampedArray.prototype.streamAsync = function () {
   return AsyncIterableStream.from(this);
 };
-Int16Array.prototype.asyncStream = function () {
+Int16Array.prototype.streamAsync = function () {
   return AsyncIterableStream.from(this);
 };
-Uint16Array.prototype.asyncStream = function () {
+Uint16Array.prototype.streamAsync = function () {
   return AsyncIterableStream.from(this);
 };
-Int32Array.prototype.asyncStream = function () {
+Int32Array.prototype.streamAsync = function () {
   return AsyncIterableStream.from(this);
 };
-Uint32Array.prototype.asyncStream = function () {
+Uint32Array.prototype.streamAsync = function () {
   return AsyncIterableStream.from(this);
 };
-Float32Array.prototype.asyncStream = function () {
+Float32Array.prototype.streamAsync = function () {
   return AsyncIterableStream.from(this);
 };
-Float64Array.prototype.asyncStream = function () {
+Float64Array.prototype.streamAsync = function () {
   return AsyncIterableStream.from(this);
 };

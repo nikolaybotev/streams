@@ -6,7 +6,7 @@ test("Generator.stream polyfill works with generator functions", async () => {
   }
 
   const r = await gen()
-    .asyncStream()
+    .streamAsync()
     .map((x) => x * 2)
     .toArray();
 
@@ -17,7 +17,7 @@ test("Generator.stream polyfill works with Array.keys()", async () => {
   const gen = [1, 2, 3].keys();
 
   const r = await gen
-    .asyncStream()
+    .streamAsync()
     .map((x) => x * 2)
     .toArray();
 
@@ -28,7 +28,7 @@ test("Generator.stream polyfill works with Array.values()", async () => {
   const gen = [1, 2, 3].values();
 
   const r = await gen
-    .asyncStream()
+    .streamAsync()
     .map((x) => x * 2)
     .toArray();
 
@@ -43,7 +43,7 @@ test("Generator.stream polyfill works with Map.keys()", async () => {
   const gen = map.keys();
 
   const r = await gen
-    .asyncStream()
+    .streamAsync()
     .map((x) => x * 2)
     .toArray();
 
@@ -58,7 +58,7 @@ test("Generator.stream polyfill works with Map.values()", async () => {
   const gen = map.values();
 
   const r = await gen
-    .asyncStream()
+    .streamAsync()
     .map((x) => x.toUpperCase())
     .toArray();
 

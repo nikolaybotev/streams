@@ -2,10 +2,10 @@ import { AsyncIterableStream } from "../index";
 
 declare global {
   interface Array<T> {
-    asyncStream(): AsyncIterableStream<T>;
+    streamAsync(): AsyncIterableStream<T>;
   }
 }
 
-Array.prototype.asyncStream = function () {
+Array.prototype.streamAsync = function () {
   return AsyncIterableStream.from(this);
 };
