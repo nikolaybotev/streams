@@ -21,7 +21,7 @@ export function readableSplit<T, R = T>(
     write(chunk: Buffer, _encoding, callback) {
       const [items, nextRemainder] = by.split(chunk, remainder);
 
-      const puts = items.map(pipe.put);
+      const puts = items.map((value) => pipe.put({ value }));
 
       remainder = nextRemainder;
 
@@ -30,10 +30,15 @@ export function readableSplit<T, R = T>(
     },
   });
 
+  const errorListener = (error) => {
+    pipe.put({ error });
+    cleanUp();
+  };
+
   const endListener = () => {
     const lastItem = by.last(remainder);
     if (lastItem !== null) {
-      pipe.put(lastItem);
+      pipe.put({ value: lastItem });
     }
 
     // Allow consumers to read any buffered data
@@ -45,11 +50,15 @@ export function readableSplit<T, R = T>(
   // See https://nodejs.org/api/stream.html#two-reading-modes
   readable.pipe(writable);
   readable.on("end", endListener);
+  readable.on("close", endListener);
+  readable.on("error", errorListener);
 
   function cleanUp() {
     pipe.close();
     readable.unpipe(writable);
     readable.off("end", endListener);
+    readable.off("close", endListener);
+    readable.off("error", errorListener);
   }
 
   function close(): Promise<IteratorResult<T>> {

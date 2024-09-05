@@ -22,7 +22,7 @@ export function iteratorInterval(
 
   let n = 0;
   const timer = scheduler.schedule(periodMillis, () => {
-    pipe.put(n++);
+    pipe.put({ value: n++ });
   });
 
   function close(): Promise<IteratorResult<number>> {

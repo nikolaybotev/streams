@@ -1,26 +1,38 @@
 export function makePipe<T>() {
-  const puts: [T, () => void][] = [];
-  const takes: ((v: IteratorResult<T>) => void)[] = [];
+  type Message = { value?: T; error?: Error };
+  type Resolver<X> = {
+    resolve: (v: X) => void;
+    reject: (e?: Error) => void;
+  };
+
+  const puts: [Message, () => void][] = [];
+  const takes: Resolver<IteratorResult<T>>[] = [];
   let closed = false;
 
-  function put(n: T) {
+  function put(message: Message) {
     if (closed) {
       return;
     }
     const nextInLine = takes.shift();
+
     if (nextInLine) {
-      nextInLine({ done: false, value: n });
+      const { value, error } = message;
+      if (value !== undefined) {
+        nextInLine.resolve({ done: false, value });
+      } else {
+        nextInLine.reject(error!);
+      }
       return Promise.resolve();
     } else {
       return new Promise<void>((resolve) => {
-        puts.push([n, resolve]);
+        puts.push([message, resolve]);
       });
     }
   }
 
   function close() {
     closed = true;
-    takes.forEach((next) => next({ done: true, value: undefined }));
+    takes.forEach((next) => next.resolve({ done: true, value: undefined }));
     takes.length = 0;
   }
 
@@ -28,13 +40,20 @@ export function makePipe<T>() {
     const [next, resolveNext] = puts.shift() ?? [];
     if (next) {
       resolveNext!();
-      return Promise.resolve({ done: false, value: next });
+      const { value, error } = next;
+      if (value !== undefined) {
+        return Promise.resolve({ done: false, value });
+      } else {
+        return Promise.reject(error);
+      }
     }
     if (closed) {
       return Promise.resolve({ done: true, value: undefined });
     }
 
-    return new Promise<IteratorResult<T>>((resolve) => takes.push(resolve));
+    return new Promise<IteratorResult<T>>((resolve, reject) =>
+      takes.push({ resolve, reject }),
+    );
   }
 
   return { put, next, close };
