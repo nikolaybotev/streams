@@ -85,9 +85,11 @@ export interface AsyncStream<T> extends AsyncIterableIterator<T> {
    *
    * @param transform
    */
-  flatMap<U>(transform: (_: T) => AsyncStream<U>): AsyncStream<U>;
+  flatMap<U>(transform: (_: T) => AsyncIterable<U>): AsyncStream<U>;
 
-  flatMapAwait<U>(transform: (_: T) => Promise<AsyncStream<U>>): AsyncStream<U>;
+  flatMapAwait<U>(
+    transform: (_: T) => Promise<AsyncIterable<U>>,
+  ): AsyncStream<U>;
 
   batch(batchSize: number): AsyncStream<T[]>;
 
@@ -207,8 +209,8 @@ export interface AsyncStream<T> extends AsyncIterableIterator<T> {
    */
   find(predicate: (_: T) => boolean): Promise<T | undefined>;
 
-  first(predicate: (_: T) => boolean): Promise<T | undefined>;
-  last(predicate: (_: T) => boolean): Promise<T | undefined>;
+  first(predicate?: (_: T) => boolean): Promise<T | undefined>;
+  last(predicate?: (_: T) => boolean): Promise<T | undefined>;
   max(comparator: (a: T, b: T) => number): Promise<T | undefined>;
   min(comparator: (a: T, b: T) => number): Promise<T | undefined>;
 
@@ -270,24 +272,56 @@ class AsyncStreamOfIterator<T>
   }
 
   map<U>(transform: (_: T) => U): AsyncStream<U> {
-    async function* mapped(it: AsyncStream<T>) {
-      for await (const v of it) {
-        yield transform(v);
-      }
+    function mapResult(sourceResult) {
+      return new Promise<IteratorResult<U>>((resolve, reject) => {
+        sourceResult.then((result) => {
+          if (result.done) {
+            resolve(result);
+          } else {
+            // transform could return a Promise...
+            const transformed = transform(result.value);
+            Promise.resolve(transformed).then(
+              (value) => resolve({ value, done: false }),
+              reject,
+            );
+          }
+        }, reject);
+      });
     }
-    return new AsyncStreamOfIterator(mapped(this));
+
+    const nextMapped = (...args: [] | [undefined]) => {
+      const sourceResult = this.iterator.next(...args);
+      return mapResult(sourceResult);
+    };
+
+    const mappedIterator: AsyncIterator<U> = { next: nextMapped };
+
+    if (this.iterator.return) {
+      mappedIterator.return = (value?) => {
+        const sourceResult = this.iterator.return!(value);
+        return mapResult(sourceResult);
+      };
+    }
+
+    if (this.iterator.throw) {
+      mappedIterator.throw = (e?) => {
+        const sourceResult = this.iterator.throw!(e);
+        return mapResult(sourceResult);
+      };
+    }
+    return new AsyncStreamOfIterator(mappedIterator);
   }
 
   mapAwait<U>(transform: (_: T) => Promise<U>): AsyncStream<U> {
     async function* mapAwaited(it: AsyncStream<T>) {
       for await (const v of it) {
-        yield await transform(v);
+        yield transform(v);
       }
     }
     return new AsyncStreamOfIterator(mapAwaited(this));
   }
 
-  flatMap<U>(transform: (_: T) => AsyncStream<U>): AsyncStream<U> {
+  flatMap<U>(transform: (_: T) => AsyncIterable<U>): AsyncStream<U> {
     async function* flatMapped(it: AsyncStream<T>) {
       for await (const nested of it) {
         yield* transform(nested);
@@ -297,7 +331,7 @@ class AsyncStreamOfIterator<T>
   }
 
   flatMapAwait<U>(
-    transform: (_: T) => Promise<AsyncStream<U>>,
+    transform: (_: T) => Promise<AsyncIterable<U>>,
   ): AsyncStream<U> {
     async function* flatMapAwaited(it: AsyncStream<T>) {
       for await (const nested of it) {
@@ -453,7 +487,9 @@ class AsyncStreamOfIterator<T>
     return count;
   }
 
-  async first(predicate: (_: T) => boolean): Promise<T | undefined> {
+  async first(
+    predicate: (_: T) => boolean = (_) => true,
+  ): Promise<T | undefined> {
     for await (const v of this) {
       if (await predicate(v)) {
         return v;
@@ -462,7 +498,9 @@ class AsyncStreamOfIterator<T>
     return undefined;
   }
 
-  async last(predicate: (_: T) => boolean): Promise<T | undefined> {
+  async last(
+    predicate: (_: T) => boolean = (_) => true,
+  ): Promise<T | undefined> {
     let result: T | undefined;
     for await (const v of this) {
       if (await predicate(v)) {
