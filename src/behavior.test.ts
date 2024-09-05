@@ -1,8 +1,10 @@
 // Tests that demonstrate various non-obvious behaviors
-// of async iterators and generator.
+// of Async Iterators and Generator functions.
 //
 
-function logger() {
+import { streamInterval } from "./interval";
+
+export function logger() {
   const output: unknown[] = [];
 
   const log = (...s: unknown[]) => {
@@ -334,4 +336,45 @@ test("async generator does not pass through next() and return() arguments", asyn
   expect(await it2.next("HELLO")).toEqual({ value: 2, done: false });
   expect(await it2.return("YAY")).toEqual({ value: "YAY", done: true });
   expect(log.output).toEqual(["NEXT", "RETURN", undefined]);
+});
+
+test("async generator awaits promises before yielding", async () => {
+  const log = logger();
+
+  async function* generator() {
+    log("generate first");
+    const first = streamInterval(40)
+      .map((_) => "first")
+      .peek(() => log("first produced"))
+      .first();
+    yield first;
+    log("generate second");
+    const second = streamInterval(20)
+      .map((_) => "second")
+      .peek(() => log("second produced"))
+      .first();
+    yield second;
+    log("generate done");
+  }
+
+  log("start");
+  const result = generator();
+  const p1 = result.next();
+  log("first requested");
+  const p2 = result.next();
+  log("second requested");
+  const resolved = (await Promise.all([p1, p2])).map((r) => r.value);
+  log("all done");
+
+  expect(resolved).toEqual(["first", "second"]);
+  expect(log.output).toEqual([
+    "start",
+    "generate first",
+    "first requested",
+    "second requested",
+    "first produced",
+    "generate second",
+    "second produced",
+    "all done",
+  ]);
 });

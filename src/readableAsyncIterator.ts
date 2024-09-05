@@ -1,40 +1,5 @@
 import { Readable } from "stream";
-
-function makePipe<T>() {
-  const puts: T[] = [];
-  const takes: ((v: IteratorResult<T>) => void)[] = [];
-  let closed = false;
-
-  function put(n: T) {
-    if (closed) {
-      return;
-    }
-    const nextInLine = takes.shift();
-    if (nextInLine) {
-      nextInLine({ done: false, value: n });
-    } else {
-      puts.push(n);
-    }
-  }
-
-  function close() {
-    closed = true;
-  }
-
-  function next(): Promise<IteratorResult<T>> {
-    const next = puts.shift();
-    if (next) {
-      return Promise.resolve({ done: false, value: next });
-    }
-    if (closed) {
-      return Promise.resolve({ done: true, value: undefined });
-    }
-
-    return new Promise<IteratorResult<T>>((resolve) => takes.push(resolve));
-  }
-
-  return { put, next, close };
-}
+import { makePipe } from "./util/pipe";
 
 export interface Splitter<B, T, R> {
   initial(): R;
@@ -44,13 +9,13 @@ export interface Splitter<B, T, R> {
 
 export function readableAsyncIterator<T, R>(
   readable: Readable,
-  by: Splitter<Buffer, T, R>,
+  by: Splitter<Buffer | string, T, R>,
 ): AsyncIterator<T> {
   const { next, ...pipe } = makePipe<T>();
 
   let remainder = by.initial();
 
-  const dataListener = (chunk: Buffer) => {
+  const dataListener = (chunk: Buffer | string) => {
     const [items, nextRemainder] = by.split(chunk, remainder);
 
     items.forEach(pipe.put);

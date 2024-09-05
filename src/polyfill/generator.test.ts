@@ -13,6 +13,17 @@ test("Generator.stream polyfill works with generator functions", async () => {
   expect(r).toEqual([2, 4, 6]);
 });
 
+test("Generator.stream polyfill works with Array.keys()", async () => {
+  const gen = [1, 2, 3].keys();
+
+  const r = await gen
+    .asyncStream()
+    .map((x) => x * 2)
+    .toArray();
+
+  expect(r).toEqual([0, 2, 4]);
+});
+
 test("Generator.stream polyfill works with Array.values()", async () => {
   const gen = [1, 2, 3].values();
 
