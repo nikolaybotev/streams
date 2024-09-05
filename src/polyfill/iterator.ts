@@ -10,17 +10,9 @@ declare global {
   }
 }
 
-const GeneratorPrototype = Object.getPrototypeOf(
-  Object.getPrototypeOf((function* () {})()),
-);
-
 const IterableIteratorPrototype = Object.getPrototypeOf(
   Object.getPrototypeOf([].values()),
 );
-
-GeneratorPrototype.streamAsync = function () {
-  return AsyncIterableStream.from(this);
-};
 
 IterableIteratorPrototype.streamAsync = function () {
   return AsyncIterableStream.from(this);

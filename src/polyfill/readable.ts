@@ -1,7 +1,7 @@
-import { Readable, Duplex } from "stream";
+import { Readable, Duplex } from "node:stream";
 import { streamLines } from "../source/lines";
 
-declare module "stream" {
+declare module "node:stream" {
   interface Readable {
     lines(encoding?: BufferEncoding): AsyncIterableIterator<string>;
   }

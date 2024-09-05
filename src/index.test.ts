@@ -24,13 +24,16 @@ test("some() consumes iterator", async () => {
 test("map() concurrent helpers - results are computed concurrently", async () => {
   // See https://github.com/tc39/proposal-async-iterator-helpers?tab=readme-ov-file#concurrency
   const log = logger();
-  const gen = [50, 10].streamAsync().map((n) =>
-    streamInterval(n)
-      .stream()
-      .map((_) => n)
-      .peek((v) => log(v))
-      .first(),
-  );
+  const gen = [50, 10]
+    .values()
+    .streamAsync()
+    .map((n) =>
+      streamInterval(n)
+        .stream()
+        .map((_) => n)
+        .peek((v) => log(v))
+        .first(),
+    );
 
   const result = (await Promise.all([gen.next(), gen.next()])).map(
     (x) => x.value,

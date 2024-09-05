@@ -1,7 +1,4 @@
-import "./array";
 import "./asyncIterator";
-import "./map";
+import "./iterator";
 import "./readable";
-import "./set";
 import "./string";
-import "./typedArray";

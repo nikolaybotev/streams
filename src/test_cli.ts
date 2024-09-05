@@ -26,5 +26,5 @@ process.stdin
 process.stdin
   .lines()
   .stream()
-  .map((s) => s.substr(0, 2).toLocaleLowerCase())
+  .map((s) => s.substring(0, 2).toLocaleLowerCase())
   .forEach(console.log);

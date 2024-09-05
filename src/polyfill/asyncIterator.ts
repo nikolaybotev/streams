@@ -1,7 +1,11 @@
 import { AsyncIterableStream } from "../index";
 
 declare global {
-  interface AsyncIterator<T> {
+  interface AsyncGenerator<T> {
+    stream(): AsyncIterableStream<T>;
+  }
+
+  interface AsyncIterableIterator<T> {
     stream(): AsyncIterableStream<T>;
   }
 }
