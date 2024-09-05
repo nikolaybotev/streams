@@ -3,7 +3,7 @@
 //
 
 import "./factories/asyncIterator";
-import { streamInterval } from "./source/interval";
+import { iteratorInterval } from "./source/interval";
 
 export function logger() {
   const output: unknown[] = [];
@@ -344,14 +344,14 @@ test("async generator awaits promises before yielding", async () => {
 
   async function* generator() {
     log("generate first");
-    const first = streamInterval(40)
+    const first = iteratorInterval(40)
       .stream()
       .map((_) => "first")
       .peek(() => log("first produced"))
       .first();
     yield first;
     log("generate second");
-    const second = streamInterval(20)
+    const second = iteratorInterval(20)
       .stream()
       .map((_) => "second")
       .peek(() => log("second produced"))

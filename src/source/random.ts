@@ -1,5 +1,5 @@
-export function streamRandomBytes(): AsyncIterableIterator<number> {
-  async function* randomSource() {
+export function iteratorRandom(): IterableIterator<number> {
+  function* randomSource() {
     while (true) {
       yield Math.random();
     }

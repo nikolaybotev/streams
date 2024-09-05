@@ -2,7 +2,7 @@ import { makePipe } from "../util/pipe";
 
 export interface IntervalScheduler<T = unknown> {
   schedule(interval: number, listener: () => unknown): T;
-  cancel(scheduled: T);
+  cancel(scheduled: T): void;
 }
 
 export const defaultScheduler = {
@@ -14,7 +14,7 @@ export const defaultScheduler = {
   },
 } as IntervalScheduler;
 
-export function streamInterval(
+export function iteratorInterval(
   periodMillis: number,
   scheduler: IntervalScheduler = defaultScheduler,
 ): AsyncIterableIterator<number> {

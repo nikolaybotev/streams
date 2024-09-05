@@ -22,7 +22,7 @@ function stringSplitter(): Splitter<string, string, string> {
   };
 }
 
-export function streamLines(
+export function readLines(
   readable: Readable,
   encoding: BufferEncoding = "utf-8",
 ): AsyncIterableIterator<string> {

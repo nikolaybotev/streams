@@ -3,7 +3,7 @@ import { randomBytes as randomBytesCb } from "node:crypto";
 
 const randomBytes = promisify<number, Buffer>(randomBytesCb);
 
-export function streamSecureRandomBytes(
+export function iteratorSecureRandom(
   bufferSize: number = 64,
 ): AsyncIterableIterator<number> {
   async function* secureRandomSource() {

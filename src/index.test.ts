@@ -1,5 +1,5 @@
 import "./factories";
-import { streamInterval } from "./source/interval";
+import { iteratorInterval } from "./source/interval";
 import { logger } from "./behavior.test";
 
 test("some() consumes iterator", async () => {
@@ -28,7 +28,7 @@ test("map() concurrent helpers - results are computed concurrently", async () =>
     .values()
     .streamAsync()
     .map((n) =>
-      streamInterval(n)
+      iteratorInterval(n)
         .stream()
         .map((_) => n)
         .peek((v) => log(v))

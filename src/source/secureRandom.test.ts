@@ -1,8 +1,8 @@
 import "../factories/asyncIterator";
-import { streamSecureRandomBytes } from "./secureRandom";
+import { iteratorSecureRandom } from "./secureRandom";
 
 test("streamSecureRandom generates 20 bytes", async () => {
-  const gen = streamSecureRandomBytes(16);
+  const gen = iteratorSecureRandom(16);
 
   const result = await gen.stream().take(20).toArray();
 
