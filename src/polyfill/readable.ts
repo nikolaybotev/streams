@@ -1,6 +1,6 @@
 import { Readable, Duplex } from "stream";
 import { AsyncIterableStream } from "../index";
-import { streamLines } from "../lines";
+import { streamLines } from "../source/lines";
 
 declare module "stream" {
   interface Readable {

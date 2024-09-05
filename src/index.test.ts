@@ -1,5 +1,5 @@
 import "./polyfill";
-import { streamInterval } from "./interval";
+import { streamInterval } from "./source/interval";
 import { logger } from "./behavior.test";
 
 test("some() consumes iterator", async () => {

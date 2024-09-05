@@ -1,4 +1,4 @@
-import { AsyncIterableStream } from "./index";
+import { AsyncIterableStream } from "../index";
 import { promisify } from "node:util";
 import { randomBytes as randomBytesCb } from "node:crypto";
 

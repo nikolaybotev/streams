@@ -2,7 +2,7 @@
 // of Async Iterators and Generator functions.
 //
 
-import { streamInterval } from "./interval";
+import { streamInterval } from "./source/interval";
 
 export function logger() {
   const output: unknown[] = [];

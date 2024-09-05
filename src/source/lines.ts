@@ -1,5 +1,5 @@
 import { Readable } from "stream";
-import { AsyncIterableStream } from "./index";
+import { AsyncIterableStream } from "../index";
 import { Splitter, readableAsyncIterator } from "./readableAsyncIterator";
 
 function stringSplitter(): Splitter<string, string, string> {

@@ -1,5 +1,5 @@
-import { Readable } from "stream";
-import { makePipe } from "./util/pipe";
+import { Readable } from "node:stream";
+import { makePipe } from "../util/pipe";
 
 export interface Splitter<B, T, R> {
   initial(): R;

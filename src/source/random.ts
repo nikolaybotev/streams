@@ -1,4 +1,4 @@
-import { AsyncIterableStream } from "./index";
+import { AsyncIterableStream } from "../index";
 
 export function streamRandomBytes(): AsyncIterableStream<number> {
   async function* randomSource() {

@@ -1,4 +1,4 @@
-import { AsyncIterableStream } from "./index";
+import { AsyncIterableStream } from "../index";
 
 export function streamRange(
   startInclusive: number,

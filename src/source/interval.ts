@@ -1,5 +1,5 @@
-import { AsyncIterableStream } from "./index";
-import { makePipe } from "./util/pipe";
+import { AsyncIterableStream } from "../index";
+import { makePipe } from "../util/pipe";
 
 export function streamInterval(
   periodMillis: number,

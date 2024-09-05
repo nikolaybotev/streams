@@ -1,7 +1,7 @@
 // Tests that determine various behaviors of Iterator Helpers
 //
 
-import { streamInterval } from "./interval";
+import { streamInterval } from "./source/interval";
 
 describe("tests that require Iterator Helpers", () => {
   // Skip these tests if the runtime does not have Iterator Helpers implemented
