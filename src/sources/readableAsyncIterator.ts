@@ -1,4 +1,4 @@
-import { Readable } from "node:stream";
+import { Readable, Writable } from "node:stream";
 import { makePipe } from "../util/pipe";
 
 export interface Splitter<B, T, R> {
@@ -10,18 +10,25 @@ export interface Splitter<B, T, R> {
 export function readableAsyncIterator<T, R>(
   readable: Readable,
   by: Splitter<Buffer | string, T, R>,
+  encoding?: BufferEncoding,
 ): AsyncIterableIterator<T> {
   const { next, ...pipe } = makePipe<T>();
 
   let remainder = by.initial();
 
-  const dataListener = (chunk: Buffer | string) => {
-    const [items, nextRemainder] = by.split(chunk, remainder);
+  const writable = new Writable({
+    defaultEncoding: encoding,
+    write(chunk, _encoding, callback) {
+      const [items, nextRemainder] = by.split(chunk, remainder);
 
-    items.forEach(pipe.put);
+      const puts = items.map(pipe.put);
 
-    remainder = nextRemainder;
-  };
+      remainder = nextRemainder;
+
+      // Apply back-pressure by awaiting consumption of produced items...
+      Promise.all(puts).then(() => callback());
+    },
+  });
 
   const endListener = () => {
     const lastItem = by.last(remainder);
@@ -33,13 +40,16 @@ export function readableAsyncIterator<T, R>(
     cleanUp();
   };
 
-  readable.on("data", dataListener);
+  // Use pipe instead of on("data") because unpipe() releases the stream,
+  // putting the stream in paused mode.
+  // See https://nodejs.org/api/stream.html#two-reading-modes
+  readable.pipe(writable);
   readable.on("end", endListener);
 
   function cleanUp() {
     pipe.close();
-    readable.removeListener("data", dataListener);
-    readable.removeListener("end", endListener);
+    readable.unpipe(writable);
+    readable.off("end", endListener);
   }
 
   function close(): Promise<IteratorResult<T>> {

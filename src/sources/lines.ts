@@ -1,14 +1,16 @@
 import { Readable } from "stream";
 import { Splitter, readableAsyncIterator } from "./readableAsyncIterator";
 
-function stringSplitter(): Splitter<string, string, string> {
+function stringSplitter(
+  encoding?: BufferEncoding,
+): Splitter<Buffer, string, string> {
   return {
     initial() {
       return "";
     },
 
-    split(chunk: string, previous: string) {
-      const lines = chunk.split("\n");
+    split(chunk: Buffer, previous: string) {
+      const lines = chunk.toString(encoding).split("\n");
 
       lines[0] = previous + lines[0];
       const remainder = lines.pop() ?? "";
@@ -27,5 +29,5 @@ export function readLines(
   encoding: BufferEncoding = "utf-8",
 ): AsyncIterableIterator<string> {
   readable.setEncoding(encoding);
-  return readableAsyncIterator(readable, stringSplitter());
+  return readableAsyncIterator(readable, stringSplitter(encoding), encoding);
 }

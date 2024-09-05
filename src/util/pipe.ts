@@ -1,5 +1,5 @@
 export function makePipe<T>() {
-  const puts: T[] = [];
+  const puts: [T, () => void][] = [];
   const takes: ((v: IteratorResult<T>) => void)[] = [];
   let closed = false;
 
@@ -10,8 +10,11 @@ export function makePipe<T>() {
     const nextInLine = takes.shift();
     if (nextInLine) {
       nextInLine({ done: false, value: n });
+      return Promise.resolve();
     } else {
-      puts.push(n);
+      return new Promise<void>((resolve) => {
+        puts.push([n, resolve]);
+      });
     }
   }
 
@@ -22,8 +25,9 @@ export function makePipe<T>() {
   }
 
   function next(): Promise<IteratorResult<T>> {
-    const next = puts.shift();
+    const [next, resolveNext] = puts.shift() ?? [];
     if (next) {
+      resolveNext!();
       return Promise.resolve({ done: false, value: next });
     }
     if (closed) {
