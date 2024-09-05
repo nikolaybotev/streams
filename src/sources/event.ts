@@ -1,4 +1,5 @@
 import { makePipe } from "../util/pipe";
+import { makeAsyncGenerator } from "./asyncGenerator";
 
 type EventHandler = (event) => unknown;
 
@@ -63,21 +64,10 @@ export function fromEventPattern<T>(
     addHandler(put);
   }
 
-  function stop(): Promise<IteratorResult<T>> {
+  function stop() {
     close();
     removeHandler?.(put);
-    return Promise.resolve({ done: true, value: undefined });
   }
 
-  // Wrap the readable Iterator in an AsyncGenerator in order to ensure that
-  // AsyncIterator Helpers are available where implemented by the runtime.
-  const iterator = { next, return: stop, throw: stop };
-  const iterable = { [Symbol.asyncIterator]: () => iterator };
-  async function* generator() {
-    start();
-
-    yield* iterable;
-  }
-
-  return generator();
+  return makeAsyncGenerator(start, next, stop);
 }

@@ -1,4 +1,5 @@
 import { makePipe } from "../util/pipe";
+import { makeAsyncGenerator } from "./asyncGenerator";
 
 export interface IntervalScheduler<T = unknown> {
   schedule(interval: number, listener: () => unknown): T;
@@ -17,7 +18,7 @@ export const defaultScheduler = {
 export function iteratorInterval(
   periodMillis: number,
   scheduler: IntervalScheduler = defaultScheduler,
-): AsyncIterableIterator<number> {
+): AsyncGenerator<number> {
   const { next, ...pipe } = makePipe<number>();
 
   let timer;
@@ -29,21 +30,10 @@ export function iteratorInterval(
     });
   }
 
-  function stop(): Promise<IteratorResult<number>> {
+  function stop() {
     pipe.close();
     scheduler.cancel(timer);
-    return Promise.resolve({ done: true, value: undefined });
   }
 
-  // Wrap the interval Iterator in an AsyncGenerator in order to ensure that
-  // AsyncIterator Helpers are available where implemented by the runtime.
-  const intervalIterator = { next, return: stop, throw: stop };
-  const intervalIterable = { [Symbol.asyncIterator]: () => intervalIterator };
-  async function* generateInterval() {
-    start();
-
-    yield* intervalIterable;
-  }
-
-  return generateInterval();
+  return makeAsyncGenerator(start, next, stop);
 }

@@ -1,5 +1,6 @@
 import { Readable, Writable } from "node:stream";
 import { makePipe } from "../util/pipe";
+import { makeAsyncGenerator } from "./asyncGenerator";
 
 export function readableChunks(
   readable: Readable,
@@ -37,24 +38,13 @@ export function readableChunks(
     readable.on("error", errorListener);
   }
 
-  function stop(): Promise<IteratorResult<Buffer>> {
+  function stop() {
     pipe.close();
     readable.unpipe(writable);
     readable.off("end", endListener);
     readable.off("close", endListener);
     readable.off("error", errorListener);
-    return Promise.resolve({ done: true, value: undefined });
   }
 
-  // Wrap the readable Iterator in an AsyncGenerator in order to ensure that
-  // AsyncIterator Helpers are available where implemented by the runtime.
-  const iterator = { next, return: stop, throw: stop };
-  const iterable = { [Symbol.asyncIterator]: () => iterator };
-  async function* generator() {
-    start();
-
-    yield* iterable;
-  }
-
-  return generator();
+  return makeAsyncGenerator(start, next, stop);
 }
