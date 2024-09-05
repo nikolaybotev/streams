@@ -15,12 +15,10 @@ export function makePipe<T>() {
     }
   }
 
-  function close(clear: boolean = false) {
+  function close() {
     closed = true;
+    takes.forEach((next) => next({ done: true, value: undefined }));
     takes.length = 0;
-    if (clear) {
-      puts.length = 0;
-    }
   }
 
   function next(): Promise<IteratorResult<T>> {

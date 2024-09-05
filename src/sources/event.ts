@@ -62,9 +62,7 @@ export function fromEventPattern<T>(
   addHandler(put);
 
   function end(): Promise<IteratorResult<T>> {
-    // Clear the pipe buffers - no more reading after the iterator has been
-    // consumed.
-    close(true);
+    close();
     removeHandler?.(put);
     return Promise.resolve({ done: true, value: undefined });
   }

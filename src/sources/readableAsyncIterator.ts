@@ -30,22 +30,20 @@ export function readableAsyncIterator<T, R>(
     }
 
     // Allow consumers to read any buffered data
-    cleanUp(false);
+    cleanUp();
   };
 
   readable.on("data", dataListener);
   readable.on("end", endListener);
 
-  function cleanUp(clear: boolean) {
-    pipe.close(clear);
+  function cleanUp() {
+    pipe.close();
     readable.removeListener("data", dataListener);
     readable.removeListener("end", endListener);
   }
 
   function close(): Promise<IteratorResult<T>> {
-    // Clear the pipe buffers - no more reading after the iterator has been
-    // consumed.
-    cleanUp(true);
+    cleanUp();
     return Promise.resolve({ done: true, value: undefined });
   }
 

@@ -26,7 +26,7 @@ export function iteratorInterval(
   });
 
   function close(): Promise<IteratorResult<number>> {
-    pipe.close(true);
+    pipe.close();
     scheduler.cancel(timer);
     return Promise.resolve({ done: true, value: undefined });
   }
