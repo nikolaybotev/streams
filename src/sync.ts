@@ -114,13 +114,13 @@ export interface IteratorStream<T> extends IterableIterator<T> {
    *
    * @param block
    */
-  forEach(block: (_: T) => unknown | Promise<unknown>): Promise<void>;
+  forEach(block: (_: T) => unknown): void;
   collect<A, R>(
     container: A,
     accumulator: (a: A, t: T) => void,
     finisher: (_: A) => R,
-  ): Promise<R>;
-  reduceLeft<R>(initial: R, accumulator: (r: R, t: T) => R): Promise<R>;
+  ): R;
+  reduceLeft<R>(initial: R, accumulator: (r: R, t: T) => R): R;
 
   /**
    *
@@ -129,7 +129,7 @@ export interface IteratorStream<T> extends IterableIterator<T> {
    * @param accumulator
    * @param initial
    */
-  reduce(accumulator: (a: T, b: T) => T, initial?: T): Promise<T>;
+  reduce(accumulator: (a: T, b: T) => T, initial?: T): T;
 
   /**
    * Like {@link IteratorStream#reduce()} but returns `undefined` if this stream is
@@ -138,7 +138,7 @@ export interface IteratorStream<T> extends IterableIterator<T> {
    * @param accumulator
    * @param initial
    */
-  fold(accumulator: (a: T, b: T) => T, initial?: T): Promise<T | undefined>;
+  fold(accumulator: (a: T, b: T) => T, initial?: T): T | undefined;
 
   /**
    *
@@ -146,18 +146,18 @@ export interface IteratorStream<T> extends IterableIterator<T> {
    *
    * @param predicate
    */
-  every(predicate: (_: T) => boolean): Promise<boolean>;
+  every(predicate: (_: T) => boolean): boolean;
 
   /**
    * See also [IteratorHelpers#some](https://github.com/tc39/proposal-iterator-helpers#somefn).
    *
    * @param predicate
    */
-  some(predicate: (_: T) => boolean): Promise<boolean>;
+  some(predicate: (_: T) => boolean): boolean;
 
-  none(predicate: (_: T) => boolean): Promise<boolean>;
+  none(predicate: (_: T) => boolean): boolean;
 
-  count(): Promise<number>;
+  count(): number;
 
   /**
    * Returns the first element that matches the predicate.
@@ -169,17 +169,17 @@ export interface IteratorStream<T> extends IterableIterator<T> {
    *
    * @param predicate
    */
-  find(predicate: (_: T) => boolean): Promise<T | undefined>;
+  find(predicate: (_: T) => boolean): T | undefined;
 
-  first(predicate?: (_: T) => boolean): Promise<T | undefined>;
-  last(predicate?: (_: T) => boolean): Promise<T | undefined>;
-  max(comparator: (a: T, b: T) => number): Promise<T | undefined>;
-  min(comparator: (a: T, b: T) => number): Promise<T | undefined>;
+  first(predicate?: (_: T) => boolean): T | undefined;
+  last(predicate?: (_: T) => boolean): T | undefined;
+  max(comparator: (a: T, b: T) => number): T | undefined;
+  min(comparator: (a: T, b: T) => number): T | undefined;
 
   /**
    * See also [IteratorHelpers#toArray](https://github.com/tc39/proposal-iterator-helpers#toarray).
    */
-  toArray(): Promise<T[]>;
+  toArray(): T[];
 }
 
 //
@@ -335,102 +335,98 @@ class IteratorStreamOfIterator<T>
     return new IteratorStreamOfIterator(peeked(this));
   }
 
-  async forEach(block: (_: T) => unknown | Promise<unknown>): Promise<void> {
+  forEach(block: (_: T) => unknown): void {
     for (const v of this) {
       block(v);
     }
   }
 
-  async collect<A, R>(
+  collect<A, R>(
     container: A,
     accumulator: (a: A, t: T) => void,
     finisher: (_: A) => R,
-  ): Promise<R> {
-    for await (const v of this) {
+  ): R {
+    for (const v of this) {
       accumulator(container, v);
     }
     return finisher(container);
   }
 
-  async reduceLeft<R>(initial: R, reducer: (r: R, t: T) => R): Promise<R> {
+  reduceLeft<R>(initial: R, reducer: (r: R, t: T) => R): R {
     let result = initial;
-    for await (const v of this) {
+    for (const v of this) {
       result = reducer(result, v);
     }
     return result;
   }
 
-  async every(predicate: (_: T) => boolean): Promise<boolean> {
-    for await (const v of this) {
-      if (!(await predicate(v))) {
+  every(predicate: (_: T) => boolean): boolean {
+    for (const v of this) {
+      if (!predicate(v)) {
         return false;
       }
     }
     return true;
   }
 
-  async some(predicate: (_: T) => boolean): Promise<boolean> {
-    for await (const v of this) {
-      if (await predicate(v)) {
+  some(predicate: (_: T) => boolean): boolean {
+    for (const v of this) {
+      if (predicate(v)) {
         return true;
       }
     }
     return false;
   }
 
-  async none(predicate: (_: T) => boolean): Promise<boolean> {
-    for await (const v of this) {
-      if (await predicate(v)) {
+  none(predicate: (_: T) => boolean): boolean {
+    for (const v of this) {
+      if (predicate(v)) {
         return false;
       }
     }
     return true;
   }
 
-  async count(): Promise<number> {
+  count(): number {
     let count = 0;
-    for await (const _ of this) {
+    for (const _ of this) {
       count += 1;
     }
     return count;
   }
 
-  async find(predicate: (_: T) => boolean): Promise<T | undefined> {
-    for await (const v of this) {
-      if (await predicate(v)) {
+  find(predicate: (_: T) => boolean): T | undefined {
+    for (const v of this) {
+      if (predicate(v)) {
         return v;
       }
     }
     return undefined;
   }
 
-  async first(
-    predicate: (_: T) => boolean = (_) => true,
-  ): Promise<T | undefined> {
-    for await (const v of this) {
-      if (await predicate(v)) {
+  first(predicate: (_: T) => boolean = (_) => true): T | undefined {
+    for (const v of this) {
+      if (predicate(v)) {
         return v;
       }
     }
     return undefined;
   }
 
-  async last(
-    predicate: (_: T) => boolean = (_) => true,
-  ): Promise<T | undefined> {
+  last(predicate: (_: T) => boolean = (_) => true): T | undefined {
     let result: T | undefined;
-    for await (const v of this) {
-      if (await predicate(v)) {
+    for (const v of this) {
+      if (predicate(v)) {
         result = v;
       }
     }
     return result;
   }
 
-  async max(comparator: (a: T, b: T) => number): Promise<T | undefined> {
+  max(comparator: (a: T, b: T) => number): T | undefined {
     let result: T | undefined;
     let firstItem = true;
-    for await (const v of this) {
+    for (const v of this) {
       if (firstItem) {
         result = v;
         firstItem = false;
@@ -441,10 +437,10 @@ class IteratorStreamOfIterator<T>
     return result;
   }
 
-  async min(comparator: (a: T, b: T) => number): Promise<T | undefined> {
+  min(comparator: (a: T, b: T) => number): T | undefined {
     let result: T | undefined;
     let firstItem = true;
-    for await (const v of this) {
+    for (const v of this) {
       if (firstItem) {
         result = v;
         firstItem = false;
@@ -455,11 +451,11 @@ class IteratorStreamOfIterator<T>
     return result;
   }
 
-  async reduce(adder: (a: T, b: T) => T, initial?: T): Promise<T> {
+  reduce(adder: (a: T, b: T) => T, initial?: T): T {
     const hasInitial = arguments.length >= 2;
     let firstItem = !hasInitial;
     let result = initial;
-    for await (const v of this) {
+    for (const v of this) {
       if (firstItem) {
         result = v;
         firstItem = false;
@@ -473,11 +469,11 @@ class IteratorStreamOfIterator<T>
     return result!;
   }
 
-  async fold(adder: (a: T, b: T) => T, initial?: T): Promise<T | undefined> {
+  fold(adder: (a: T, b: T) => T, initial?: T): T | undefined {
     const hasInitial = arguments.length >= 2;
     let firstItem = !hasInitial;
     let result = initial;
-    for await (const v of this) {
+    for (const v of this) {
       if (firstItem) {
         result = v;
         firstItem = false;
@@ -488,9 +484,9 @@ class IteratorStreamOfIterator<T>
     return result;
   }
 
-  async toArray(): Promise<T[]> {
+  toArray(): T[] {
     const result = [] as T[];
-    for await (const v of this) {
+    for (const v of this) {
       result.push(v);
     }
     return result;

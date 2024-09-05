@@ -84,10 +84,6 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
    */
   flatMap<U>(transform: (_: T) => AsyncIterable<U>): AsyncIteratorStream<U>;
 
-  flatMapAwait<U>(
-    transform: (_: T) => Promise<AsyncIterable<U>>,
-  ): AsyncIteratorStream<U>;
-
   batch(batchSize: number): AsyncIteratorStream<T[]>;
 
   /**
@@ -294,17 +290,6 @@ class AsyncIteratorStreamOfIterator<T>
       }
     }
     return new AsyncIteratorStreamOfIterator(flatMapped(this));
-  }
-
-  flatMapAwait<U>(
-    transform: (_: T) => Promise<AsyncIterable<U>>,
-  ): AsyncIteratorStream<U> {
-    async function* flatMapAwaited(it: AsyncIteratorStream<T>) {
-      for await (const nested of it) {
-        yield* await transform(nested);
-      }
-    }
-    return new AsyncIteratorStreamOfIterator(flatMapAwaited(this));
   }
 
   batch(batchSize: number): AsyncIteratorStream<T[]> {
