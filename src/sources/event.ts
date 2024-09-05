@@ -33,7 +33,7 @@ export function fromEvent<T>(
   target: EventEmitter,
   eventName: string | symbol,
   options?: object,
-): AsyncIterableIterator<T> {
+): AsyncGenerator<T> {
   if (typeof target.on === "function") {
     return fromEventPattern(
       (handler) => target.on!(eventName, handler),
@@ -56,10 +56,14 @@ export function fromEvent<T>(
 export function fromEventPattern<T>(
   addHandler: (handler: EventHandler) => unknown,
   removeHandler?: (handler: EventHandler) => void,
-): AsyncIterableIterator<T> {
+): AsyncGenerator<T> {
   const { next, put, close } = makePipe<T>();
 
-  function end(): Promise<IteratorResult<T>> {
+  function start() {
+    addHandler(put);
+  }
+
+  function stop(): Promise<IteratorResult<T>> {
     close();
     removeHandler?.(put);
     return Promise.resolve({ done: true, value: undefined });
@@ -67,10 +71,10 @@ export function fromEventPattern<T>(
 
   // Wrap the readable Iterator in an AsyncGenerator in order to ensure that
   // AsyncIterator Helpers are available where implemented by the runtime.
-  const iterator = { next, return: end, throw: end };
+  const iterator = { next, return: stop, throw: stop };
   const iterable = { [Symbol.asyncIterator]: () => iterator };
   async function* generator() {
-    addHandler(put);
+    start();
 
     yield* iterable;
   }

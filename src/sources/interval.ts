@@ -20,12 +20,16 @@ export function iteratorInterval(
 ): AsyncIterableIterator<number> {
   const { next, ...pipe } = makePipe<number>();
 
-  let n = 0;
-  const timer = scheduler.schedule(periodMillis, () => {
-    pipe.put({ value: n++ });
-  });
+  let timer;
 
-  function close(): Promise<IteratorResult<number>> {
+  function start() {
+    let n = 0;
+    timer = scheduler.schedule(periodMillis, () => {
+      pipe.put({ value: n++ });
+    });
+  }
+
+  function stop(): Promise<IteratorResult<number>> {
     pipe.close();
     scheduler.cancel(timer);
     return Promise.resolve({ done: true, value: undefined });
@@ -33,9 +37,11 @@ export function iteratorInterval(
 
   // Wrap the interval Iterator in an AsyncGenerator in order to ensure that
   // AsyncIterator Helpers are available where implemented by the runtime.
-  const intervalIterator = { next, return: close, throw: close };
+  const intervalIterator = { next, return: stop, throw: stop };
   const intervalIterable = { [Symbol.asyncIterator]: () => intervalIterator };
   async function* generateInterval() {
+    start();
+
     yield* intervalIterable;
   }
 

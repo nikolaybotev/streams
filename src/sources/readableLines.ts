@@ -27,7 +27,7 @@ function stringSplitter(
 export function readableLines(
   readable: Readable,
   encoding: BufferEncoding = "utf-8",
-): AsyncIterableIterator<string> {
+): AsyncGenerator<string> {
   readable.setEncoding(encoding);
   return readableSplit(readable, stringSplitter(encoding), encoding);
 }

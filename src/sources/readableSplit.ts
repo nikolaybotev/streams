@@ -11,7 +11,7 @@ export async function* readableSplit<T, R = T>(
   readable: Readable,
   by: Splitter<Buffer, T, R>,
   encoding?: BufferEncoding,
-): AsyncIterableIterator<T> {
+): AsyncGenerator<T, void, undefined> {
   let remainder = by.initial();
   for await (const chunk of readableChunks(readable, encoding)) {
     const [items, nextRemainder] = by.split(chunk, remainder);
