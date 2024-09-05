@@ -1,4 +1,4 @@
-import "./polyfill";
+import "./factories";
 
 process.stdin
   .lines()

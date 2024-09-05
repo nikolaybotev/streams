@@ -5,7 +5,7 @@
 A lazy streams library for functional composition in JavaScript.
 
 ```javascript
-import "streams/polyfill";
+import "streams/factories";
 
 process.stdin
   .streamLines()

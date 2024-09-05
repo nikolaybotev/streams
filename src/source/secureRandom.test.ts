@@ -1,4 +1,4 @@
-import "../polyfill/asyncIterator";
+import "../factories/asyncIterator";
 import { streamSecureRandomBytes } from "./secureRandom";
 
 test("streamSecureRandom generates 20 bytes", async () => {

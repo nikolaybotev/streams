@@ -2,7 +2,7 @@
 // of Async Iterators and Generator functions.
 //
 
-import "./polyfill/asyncIterator";
+import "./factories/asyncIterator";
 import { streamInterval } from "./source/interval";
 
 export function logger() {

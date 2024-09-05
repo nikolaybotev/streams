@@ -1,7 +1,7 @@
 // Tests that determine various behaviors of Iterator Helpers
 //
 
-import "./polyfill/asyncIterator";
+import "./factories/asyncIterator";
 import { streamInterval } from "./source/interval";
 
 describe("tests that require Iterator Helpers", () => {

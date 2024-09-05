@@ -1,4 +1,4 @@
-import "./polyfill";
+import "./factories";
 import { streamInterval } from "./source/interval";
 import { logger } from "./behavior.test";
 
