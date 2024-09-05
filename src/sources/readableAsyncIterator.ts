@@ -1,15 +1,15 @@
 import { Readable, Writable } from "node:stream";
 import { makePipe } from "../util/pipe";
 
-export interface Splitter<B, T, R> {
+export interface Splitter<B, T, R = T> {
   initial(): R;
   split(chunk: B, previous: R): [T[], R];
   last(remainder: R): T | null;
 }
 
-export function readableAsyncIterator<T, R>(
+export function readableSplit<T, R = T>(
   readable: Readable,
-  by: Splitter<Buffer | string, T, R>,
+  by: Splitter<Buffer, T, R>,
   encoding?: BufferEncoding,
 ): AsyncIterableIterator<T> {
   const { next, ...pipe } = makePipe<T>();
@@ -18,7 +18,7 @@ export function readableAsyncIterator<T, R>(
 
   const writable = new Writable({
     defaultEncoding: encoding,
-    write(chunk, _encoding, callback) {
+    write(chunk: Buffer, _encoding, callback) {
       const [items, nextRemainder] = by.split(chunk, remainder);
 
       const puts = items.map(pipe.put);

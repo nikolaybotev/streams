@@ -1,5 +1,5 @@
 import { Readable, Duplex } from "node:stream";
-import { readLines } from "../sources/lines";
+import { readableLines } from "../sources/lines";
 
 declare module "node:stream" {
   interface Readable {
@@ -11,9 +11,9 @@ declare module "node:stream" {
 }
 
 Readable.prototype.lines = function (encoding?: BufferEncoding) {
-  return readLines(this, encoding);
+  return readableLines(this, encoding);
 };
 
 Duplex.prototype.lines = function (encoding?: BufferEncoding) {
-  return readLines(this, encoding);
+  return readableLines(this, encoding);
 };

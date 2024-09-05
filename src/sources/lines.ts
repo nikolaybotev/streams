@@ -1,5 +1,5 @@
 import { Readable } from "stream";
-import { Splitter, readableAsyncIterator } from "./readableAsyncIterator";
+import { Splitter, readableSplit } from "./readableAsyncIterator";
 
 function stringSplitter(
   encoding?: BufferEncoding,
@@ -24,10 +24,10 @@ function stringSplitter(
   };
 }
 
-export function readLines(
+export function readableLines(
   readable: Readable,
   encoding: BufferEncoding = "utf-8",
 ): AsyncIterableIterator<string> {
   readable.setEncoding(encoding);
-  return readableAsyncIterator(readable, stringSplitter(encoding), encoding);
+  return readableSplit(readable, stringSplitter(encoding), encoding);
 }
