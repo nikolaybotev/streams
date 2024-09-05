@@ -1,21 +1,21 @@
-import { AsyncStream } from "../index";
+import { AsyncIterableStream } from "../index";
 
 declare global {
   interface Map<K, V> {
-    asyncStream(): AsyncStream<[K, V]>;
-    asyncStreamKeys(): AsyncStream<K>;
-    asyncStreamValues(): AsyncStream<V>;
+    asyncStream(): AsyncIterableStream<[K, V]>;
+    asyncStreamKeys(): AsyncIterableStream<K>;
+    asyncStreamValues(): AsyncIterableStream<V>;
   }
 }
 
 Map.prototype.asyncStream = function () {
-  return AsyncStream.fromIterable(this);
+  return AsyncIterableStream.from(this);
 };
 
 Map.prototype.asyncStreamKeys = function () {
-  return AsyncStream.fromIterable(this.keys());
+  return AsyncIterableStream.from(this.keys());
 };
 
 Map.prototype.asyncStreamValues = function () {
-  return AsyncStream.fromIterable(this.values());
+  return AsyncIterableStream.from(this.values());
 };

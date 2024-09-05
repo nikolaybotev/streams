@@ -5,11 +5,8 @@
  * AsyncStream.from([1, 2, 3]).map(x => x * 2).forEach(console.log);
  * ```
  */
-export const AsyncStream = {
+export const AsyncIterableStream = {
   from: asyncStreamFrom,
-  fromAsyncIterable: asyncStreamFromAsyncIterable,
-  fromIterable: asyncStreamFromIterable,
-  fromIterator: asyncStreamFromIterator,
 };
 
 /**
@@ -44,7 +41,7 @@ export const AsyncStream = {
  *   .forEach(console.log);  // use the AsyncStream APIs
  * ```
  */
-export interface AsyncStream<T> extends AsyncIterableIterator<T> {
+export interface AsyncIterableStream<T> extends AsyncIterableIterator<T> {
   //
   // Intermediate operations
   //
@@ -58,7 +55,7 @@ export interface AsyncStream<T> extends AsyncIterableIterator<T> {
    * @param predicate a function that decides whether to include each element
    * in the new stream (true) or to exclude the element (false)
    */
-  filter(predicate: (_: T) => boolean): AsyncStream<T>;
+  filter(predicate: (_: T) => boolean): AsyncIterableStream<T>;
 
   /**
    * Returns a new stream that transforms each element of this stream
@@ -66,10 +63,9 @@ export interface AsyncStream<T> extends AsyncIterableIterator<T> {
    *
    * See also [IteratorHelpers#map](https://github.com/tc39/proposal-iterator-helpers#mapmapperfn).
    *
-   * @alias
    * @param transform a function to apply to each element of this stream
    */
-  map<U>(transform: (_: T) => U): AsyncStream<U>;
+  map<U>(transform: (_: T) => U): AsyncIterableStream<U>;
 
   /**
    * Like `map` but the `transform` is an async function that returns a Promise
@@ -77,7 +73,7 @@ export interface AsyncStream<T> extends AsyncIterableIterator<T> {
    *
    * @param transform an async function to apply to each element of this stream
    */
-  mapAwait<U>(transform: (_: T) => Promise<U>): AsyncStream<U>;
+  mapAwait<U>(transform: (_: T) => Promise<U>): AsyncIterableStream<U>;
 
   /**
    *
@@ -85,13 +81,13 @@ export interface AsyncStream<T> extends AsyncIterableIterator<T> {
    *
    * @param transform
    */
-  flatMap<U>(transform: (_: T) => AsyncIterable<U>): AsyncStream<U>;
+  flatMap<U>(transform: (_: T) => AsyncIterable<U>): AsyncIterableStream<U>;
 
   flatMapAwait<U>(
     transform: (_: T) => Promise<AsyncIterable<U>>,
-  ): AsyncStream<U>;
+  ): AsyncIterableStream<U>;
 
-  batch(batchSize: number): AsyncStream<T[]>;
+  batch(batchSize: number): AsyncIterableStream<T[]>;
 
   /**
    * Returns a new stream that produces up to the first `limit` number of
@@ -101,15 +97,7 @@ export interface AsyncStream<T> extends AsyncIterableIterator<T> {
    *
    * @param limit the maximum number of items to produce
    */
-  take(limit: number): AsyncStream<T>;
-
-  /**
-   * An alias for `take`.
-   *
-   * @alias take
-   * @param maxSize the maximum number of items to produce
-   */
-  limit(maxSize: number): AsyncStream<T>;
+  take(limit: number): AsyncIterableStream<T>;
 
   /**
    *
@@ -117,21 +105,13 @@ export interface AsyncStream<T> extends AsyncIterableIterator<T> {
    *
    * @param n
    */
-  drop(n: number): AsyncStream<T>;
+  drop(n: number): AsyncIterableStream<T>;
 
-  /**
-   * An alias for `drop`.
-   *
-   * @alias drop
-   * @param n the number of elements to skip from the start of this stream
-   */
-  skip(n: number): AsyncStream<T>;
+  dropWhile(predicate: (_: T) => boolean): AsyncIterableStream<T>;
 
-  dropWhile(predicate: (_: T) => boolean): AsyncStream<T>;
+  takeWhile(predicate: (_: T) => boolean): AsyncIterableStream<T>;
 
-  takeWhile(predicate: (_: T) => boolean): AsyncStream<T>;
-
-  peek(observer: (_: T) => void): AsyncStream<T>;
+  peek(observer: (_: T) => void): AsyncIterableStream<T>;
 
   //
   // Terminal operations
@@ -161,7 +141,7 @@ export interface AsyncStream<T> extends AsyncIterableIterator<T> {
   reduce(accumulator: (a: T, b: T) => T, initial?: T): Promise<T>;
 
   /**
-   * Like {@link AsyncStream#reduce()} but returns `undefined` if this stream is
+   * Like {@link AsyncIterableStream#reduce()} but returns `undefined` if this stream is
    * empty instead of throwing `TypeError`.
    *
    * @param accumulator
@@ -178,30 +158,21 @@ export interface AsyncStream<T> extends AsyncIterableIterator<T> {
   every(predicate: (_: T) => boolean): Promise<boolean>;
 
   /**
-   * An alias for `every`.
-   *
-   * @param predicate
-   */
-  all(predicate: (_: T) => boolean): Promise<boolean>;
-
-  /**
    * See also [IteratorHelpers#some](https://github.com/tc39/proposal-iterator-helpers#somefn).
    *
    * @param predicate
    */
   some(predicate: (_: T) => boolean): Promise<boolean>;
 
-  /**
-   * An alias for `some`.
-   *
-   * @param predicate
-   */
-  any(predicate: (_: T) => boolean): Promise<boolean>;
   none(predicate: (_: T) => boolean): Promise<boolean>;
+
   count(): Promise<number>;
 
   /**
-   * An alias for `first`.
+   * Returns the first element that matches the predicate.
+   *
+   * This is the same as the {@link first} method except that the predicate is
+   * required.
    *
    * See also [IteratorHelpers#find](https://github.com/tc39/proposal-iterator-helpers#findfn).
    *
@@ -224,8 +195,8 @@ export interface AsyncStream<T> extends AsyncIterableIterator<T> {
 // AsyncStream Implementation
 //
 
-class AsyncStreamOfIterator<T>
-  implements AsyncStream<T>, AsyncIterableIterator<T>
+class AsyncIterableStreamOfIterator<T>
+  implements AsyncIterableStream<T>, AsyncIterableIterator<T>
 {
   constructor(private readonly iterator: AsyncIterator<T>) {}
 
@@ -246,13 +217,6 @@ class AsyncStreamOfIterator<T>
       }
     : undefined;
 
-  // Aliases
-  readonly limit = this.take;
-  readonly skip = this.drop;
-  readonly find = this.first;
-  readonly all = this.every;
-  readonly any = this.some;
-
   /**
    * @returns the AsyncIterator wrapped by this AsyncStream
    */
@@ -260,21 +224,21 @@ class AsyncStreamOfIterator<T>
     return this;
   }
 
-  filter(predicate: (_: T) => boolean): AsyncStream<T> {
-    async function* filtered(it: AsyncStream<T>) {
+  filter(predicate: (_: T) => boolean): AsyncIterableStream<T> {
+    async function* filtered(it: AsyncIterableStream<T>) {
       for await (const v of it) {
         if (predicate(v)) {
           yield v;
         }
       }
     }
-    return new AsyncStreamOfIterator(filtered(this));
+    return new AsyncIterableStreamOfIterator(filtered(this));
   }
 
-  map<U>(transform: (_: T) => U): AsyncStream<U> {
+  map<U>(transform: (_: T) => U): AsyncIterableStream<U> {
     function mapResult(sourceResult) {
       return new Promise<IteratorResult<U>>((resolve, reject) => {
-        sourceResult.then((result) => {
+        Promise.resolve(sourceResult).then((result) => {
           if (result.done) {
             resolve(result);
           } else {
@@ -309,44 +273,44 @@ class AsyncStreamOfIterator<T>
         return mapResult(sourceResult);
       };
     }
-    return new AsyncStreamOfIterator(mappedIterator);
+    return new AsyncIterableStreamOfIterator(mappedIterator);
   }
 
-  mapAwait<U>(transform: (_: T) => Promise<U>): AsyncStream<U> {
-    async function* mapAwaited(it: AsyncStream<T>) {
+  mapAwait<U>(transform: (_: T) => Promise<U>): AsyncIterableStream<U> {
+    async function* mapAwaited(it: AsyncIterableStream<T>) {
       for await (const v of it) {
         yield transform(v);
       }
     }
-    return new AsyncStreamOfIterator(mapAwaited(this));
+    return new AsyncIterableStreamOfIterator(mapAwaited(this));
   }
 
-  flatMap<U>(transform: (_: T) => AsyncIterable<U>): AsyncStream<U> {
-    async function* flatMapped(it: AsyncStream<T>) {
+  flatMap<U>(transform: (_: T) => AsyncIterable<U>): AsyncIterableStream<U> {
+    async function* flatMapped(it: AsyncIterableStream<T>) {
       for await (const nested of it) {
         yield* transform(nested);
       }
     }
-    return new AsyncStreamOfIterator(flatMapped(this));
+    return new AsyncIterableStreamOfIterator(flatMapped(this));
   }
 
   flatMapAwait<U>(
     transform: (_: T) => Promise<AsyncIterable<U>>,
-  ): AsyncStream<U> {
-    async function* flatMapAwaited(it: AsyncStream<T>) {
+  ): AsyncIterableStream<U> {
+    async function* flatMapAwaited(it: AsyncIterableStream<T>) {
       for await (const nested of it) {
         yield* await transform(nested);
       }
     }
-    return new AsyncStreamOfIterator(flatMapAwaited(this));
+    return new AsyncIterableStreamOfIterator(flatMapAwaited(this));
   }
 
-  batch(batchSize: number): AsyncStream<T[]> {
+  batch(batchSize: number): AsyncIterableStream<T[]> {
     if (batchSize < 1) {
       throw new Error("batchSize should be positive");
     }
 
-    async function* batched(it: AsyncStream<T>) {
+    async function* batched(it: AsyncIterableStream<T>) {
       let acc: T[] = [];
       for await (const v of it) {
         acc.push(v);
@@ -359,11 +323,11 @@ class AsyncStreamOfIterator<T>
         yield acc;
       }
     }
-    return new AsyncStreamOfIterator(batched(this));
+    return new AsyncIterableStreamOfIterator(batched(this));
   }
 
-  take(maxSize: number): AsyncStream<T> {
-    async function* limited(it: AsyncStream<T>) {
+  take(maxSize: number): AsyncIterableStream<T> {
+    async function* limited(it: AsyncIterableStream<T>) {
       let count = 0;
       if (count >= maxSize) {
         return;
@@ -376,11 +340,11 @@ class AsyncStreamOfIterator<T>
         }
       }
     }
-    return new AsyncStreamOfIterator(limited(this));
+    return new AsyncIterableStreamOfIterator(limited(this));
   }
 
-  drop(n: number): AsyncStream<T> {
-    async function* skipped(it: AsyncStream<T>) {
+  drop(n: number): AsyncIterableStream<T> {
+    async function* skipped(it: AsyncIterableStream<T>) {
       let count = 0;
       for await (const v of it) {
         if (count >= n) {
@@ -389,11 +353,11 @@ class AsyncStreamOfIterator<T>
         count += 1;
       }
     }
-    return new AsyncStreamOfIterator(skipped(this));
+    return new AsyncIterableStreamOfIterator(skipped(this));
   }
 
-  dropWhile(predicate: (_: T) => boolean): AsyncStream<T> {
-    async function* droppedWhile(it: AsyncStream<T>) {
+  dropWhile(predicate: (_: T) => boolean): AsyncIterableStream<T> {
+    async function* droppedWhile(it: AsyncIterableStream<T>) {
       let dropping = true;
       for await (const v of it) {
         dropping = dropping && predicate(v);
@@ -402,11 +366,11 @@ class AsyncStreamOfIterator<T>
         }
       }
     }
-    return new AsyncStreamOfIterator(droppedWhile(this));
+    return new AsyncIterableStreamOfIterator(droppedWhile(this));
   }
 
-  takeWhile(predicate: (_: T) => boolean): AsyncStream<T> {
-    async function* takenWhile(it: AsyncStream<T>) {
+  takeWhile(predicate: (_: T) => boolean): AsyncIterableStream<T> {
+    async function* takenWhile(it: AsyncIterableStream<T>) {
       for await (const v of it) {
         if (!predicate(v)) {
           return;
@@ -414,17 +378,17 @@ class AsyncStreamOfIterator<T>
         yield v;
       }
     }
-    return new AsyncStreamOfIterator(takenWhile(this));
+    return new AsyncIterableStreamOfIterator(takenWhile(this));
   }
 
-  peek(observer: (_: T) => void): AsyncStream<T> {
-    async function* peeked(it: AsyncStream<T>) {
+  peek(observer: (_: T) => void): AsyncIterableStream<T> {
+    async function* peeked(it: AsyncIterableStream<T>) {
       for await (const v of it) {
         observer(v);
         yield v;
       }
     }
-    return new AsyncStreamOfIterator(peeked(this));
+    return new AsyncIterableStreamOfIterator(peeked(this));
   }
 
   async forEach(block: (_: T) => unknown | Promise<unknown>): Promise<void> {
@@ -485,6 +449,15 @@ class AsyncStreamOfIterator<T>
       count += 1;
     }
     return count;
+  }
+
+  async find(predicate: (_: T) => boolean): Promise<T | undefined> {
+    for await (const v of this) {
+      if (await predicate(v)) {
+        return v;
+      }
+    }
+    return undefined;
   }
 
   async first(
@@ -581,38 +554,17 @@ class AsyncStreamOfIterator<T>
 }
 
 //
-// AsyncStream Factories
+// AsyncStream Factory
 //
-
-function asyncStreamFromIterable<T>(itrbl: Iterable<T>): AsyncStream<T> {
-  async function* iterableSource() {
-    for (const e of itrbl) {
-      yield e;
-    }
-  }
-  return new AsyncStreamOfIterator(iterableSource());
-}
-
-function asyncStreamFromAsyncIterable<T>(
-  itrbl: AsyncIterable<T>,
-): AsyncStream<T> {
-  return new AsyncStreamOfIterator(itrbl[Symbol.asyncIterator]());
-}
-
-function asyncStreamFromIterator<T>(
-  it: Iterator<T> | AsyncIterator<T>,
-): AsyncStream<T> {
-  return new AsyncStreamOfIterator(it as AsyncIterator<T>);
-}
 
 function asyncStreamFrom<T>(
   it: Iterable<T> | Iterator<T> | AsyncIterable<T> | AsyncIterator<T>,
-): AsyncStream<T> {
+): AsyncIterableStream<T> {
   if (typeof it[Symbol.asyncIterator] === "function") {
-    return asyncStreamFromAsyncIterable(it as AsyncIterable<T>);
+    return new AsyncIterableStreamOfIterator(it[Symbol.asyncIterator]());
   }
   if (typeof it[Symbol.iterator] === "function") {
-    return asyncStreamFromIterable(it as Iterable<T>);
+    return new AsyncIterableStreamOfIterator(it[Symbol.iterator]());
   }
-  return asyncStreamFromIterator(it as AsyncIterator<T> | Iterator<T>);
+  return new AsyncIterableStreamOfIterator(it as AsyncIterator<T>);
 }

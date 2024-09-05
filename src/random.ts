@@ -1,11 +1,11 @@
-import { AsyncStream } from "./index";
+import { AsyncIterableStream } from "./index";
 
-export function streamRandomBytes(): AsyncStream<number> {
+export function streamRandomBytes(): AsyncIterableStream<number> {
   async function* randomSource() {
     while (true) {
       yield Math.random();
     }
   }
 
-  return AsyncStream.fromIterator(randomSource());
+  return AsyncIterableStream.from(randomSource());
 }

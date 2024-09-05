@@ -5,14 +5,14 @@ process.stdin
   .map((s) => s.toLocaleUpperCase())
   .filter((s) => s.length > 3)
   .batch(3)
-  .limit(2)
+  .take(2)
   .forEach(console.log)
   .then((_) => console.log("-- all done --"));
 
 process.stdin
   .streamLines()
   .map((s) => s.toLocaleUpperCase())
-  .limit(2)
+  .take(2)
   .filter((s) => s.length > 0)
   .peek((s) => {
     if (s.length > 5) throw "too long!";

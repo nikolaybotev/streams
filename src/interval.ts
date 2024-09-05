@@ -1,7 +1,9 @@
-import { AsyncStream } from "./index";
+import { AsyncIterableStream } from "./index";
 import { makePipe } from "./util/pipe";
 
-export function streamInterval(periodMillis: number): AsyncStream<number> {
+export function streamInterval(
+  periodMillis: number,
+): AsyncIterableStream<number> {
   const { next, ...pipe } = makePipe<number>();
 
   let n = 0;
@@ -15,5 +17,5 @@ export function streamInterval(periodMillis: number): AsyncStream<number> {
     return Promise.resolve({ done: true, value: undefined });
   }
 
-  return AsyncStream.from({ next, return: iteratorReturn });
+  return AsyncIterableStream.from({ next, return: iteratorReturn });
 }

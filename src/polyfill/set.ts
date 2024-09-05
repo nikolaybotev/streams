@@ -1,11 +1,11 @@
-import { AsyncStream } from "../index";
+import { AsyncIterableStream } from "../index";
 
 declare global {
   interface Set<T> {
-    asyncStream(): AsyncStream<T>;
+    asyncStream(): AsyncIterableStream<T>;
   }
 }
 
 Set.prototype.asyncStream = function () {
-  return AsyncStream.fromIterable(this);
+  return AsyncIterableStream.from(this);
 };

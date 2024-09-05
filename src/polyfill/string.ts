@@ -1,11 +1,11 @@
-import { AsyncStream } from "../index";
+import { AsyncIterableStream } from "../index";
 
 declare global {
   interface String {
-    charAsyncStream(): AsyncStream<string>;
+    charAsyncStream(): AsyncIterableStream<string>;
   }
 }
 
 String.prototype.charAsyncStream = function () {
-  return AsyncStream.fromIterable(this);
+  return AsyncIterableStream.from(this);
 };
