@@ -59,8 +59,6 @@ export function fromEventPattern<T>(
 ): AsyncIterableIterator<T> {
   const { next, put, close } = makePipe<T>();
 
-  addHandler(put);
-
   function end(): Promise<IteratorResult<T>> {
     close();
     removeHandler?.(put);
@@ -72,6 +70,8 @@ export function fromEventPattern<T>(
   const iterator = { next, return: end, throw: end };
   const iterable = { [Symbol.asyncIterator]: () => iterator };
   async function* generator() {
+    addHandler(put);
+
     yield* iterable;
   }
 

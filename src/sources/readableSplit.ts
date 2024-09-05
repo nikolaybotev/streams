@@ -32,7 +32,7 @@ export function readableSplit<T, R = T>(
 
   const errorListener = (error) => {
     pipe.put({ error });
-    cleanUp();
+    stop();
   };
 
   const endListener = () => {
@@ -42,18 +42,20 @@ export function readableSplit<T, R = T>(
     }
 
     // Allow consumers to read any buffered data
-    cleanUp();
+    stop();
   };
 
-  // Use pipe instead of on("data") because unpipe() releases the stream,
-  // putting the stream in paused mode.
-  // See https://nodejs.org/api/stream.html#two-reading-modes
-  readable.pipe(writable);
-  readable.on("end", endListener);
-  readable.on("close", endListener);
-  readable.on("error", errorListener);
+  function start() {
+    // Use pipe instead of on("data") because unpipe() releases the stream,
+    // putting the stream in paused mode.
+    // See https://nodejs.org/api/stream.html#two-reading-modes
+    readable.pipe(writable);
+    readable.on("end", endListener);
+    readable.on("close", endListener);
+    readable.on("error", errorListener);
+  }
 
-  function cleanUp() {
+  function stop() {
     pipe.close();
     readable.unpipe(writable);
     readable.off("end", endListener);
@@ -62,7 +64,7 @@ export function readableSplit<T, R = T>(
   }
 
   function close(): Promise<IteratorResult<T>> {
-    cleanUp();
+    stop();
     return Promise.resolve({ done: true, value: undefined });
   }
 
@@ -71,6 +73,7 @@ export function readableSplit<T, R = T>(
   const iterator = { next, return: close, throw: close };
   const iterable = { [Symbol.asyncIterator]: () => iterator };
   async function* generator() {
+    start();
     yield* iterable;
   }
 
