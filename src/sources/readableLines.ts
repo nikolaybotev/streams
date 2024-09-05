@@ -1,5 +1,5 @@
 import { Readable } from "stream";
-import { Splitter, readableSplit } from "./readableAsyncIterator";
+import { Splitter, readableSplit } from "./readableSplit";
 
 function stringSplitter(
   encoding?: BufferEncoding,
