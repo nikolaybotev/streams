@@ -1,12 +1,12 @@
-import { AsyncIterableStream } from "../index";
+import { AsyncIteratorStream } from "../index";
 
 declare global {
   interface Generator<T> {
-    streamAsync(): AsyncIterableStream<T>;
+    streamAsync(): AsyncIteratorStream<T>;
   }
 
   interface IterableIterator<T> {
-    streamAsync(): AsyncIterableStream<T>;
+    streamAsync(): AsyncIteratorStream<T>;
   }
 }
 
@@ -15,5 +15,5 @@ const IterableIteratorPrototype = Object.getPrototypeOf(
 );
 
 IterableIteratorPrototype.streamAsync = function () {
-  return AsyncIterableStream.from(this);
+  return AsyncIteratorStream.from(this);
 };
