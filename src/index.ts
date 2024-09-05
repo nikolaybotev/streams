@@ -1,12 +1,12 @@
 /**
- * An object containing factory methods for AsyncStream.
+ * An object containing factory methods for AsyncIterableStream.
  *
  * ```
- * AsyncStream.from([1, 2, 3]).map(x => x * 2).forEach(console.log);
+ * AsyncIterableStream.from([1, 2, 3]).map(x => x * 2).forEach(console.log);
  * ```
  */
 export const AsyncIterableStream = {
-  from: asyncStreamFrom,
+  from: asyncIterableStreamFrom,
 };
 
 /**
@@ -14,8 +14,9 @@ export const AsyncIterableStream = {
  *
  * This is an extension of the built-in `AsyncIterable<T>` protocol.
  *
- * The operations defined here in AsyncStream are a superset of the operations
- * described in the [Async Iterator Helpers](https://github.com/tc39/proposal-async-iterator-helpers)
+ * The operations defined here in AsyncIterableStream are a superset of the
+ * operations described in the
+ * [Async Iterator Helpers](https://github.com/tc39/proposal-async-iterator-helpers)
  * proposal.
  *
  * The behavior of all operations here that correspond to operations in the
@@ -27,7 +28,7 @@ export const AsyncIterableStream = {
  *
  * However, this library is NOT a polyfill for `Async Iterator Helpers`. To use
  * this library, an async iterable iterator or generator needs to be explicitly
- * wrapped in an AsyncStream like in this example:
+ * wrapped in an AsyncIterableStream like in this example:
  *
  * ```
  * import "streams/asyncGenerator";
@@ -37,8 +38,8 @@ export const AsyncIterableStream = {
  * }
  *
  * generator()               // returns an AsyncGenerator
- *   .stream()               // convert to AsyncStream first!
- *   .forEach(console.log);  // use the AsyncStream APIs
+ *   .stream()               // convert to AsyncIterableStream first!
+ *   .forEach(console.log);  // use the AsyncIterableStream APIs
  * ```
  */
 export interface AsyncIterableStream<T> extends AsyncIterableIterator<T> {
@@ -192,7 +193,7 @@ export interface AsyncIterableStream<T> extends AsyncIterableIterator<T> {
 }
 
 //
-// AsyncStream Implementation
+// AsyncIterableStream Implementation
 //
 
 class AsyncIterableStreamOfIterator<T>
@@ -221,9 +222,6 @@ class AsyncIterableStreamOfIterator<T>
       }
     : undefined;
 
-  /**
-   * @returns the AsyncIterator wrapped by this AsyncStream
-   */
   [Symbol.asyncIterator]() {
     return this;
   }
@@ -558,10 +556,10 @@ class AsyncIterableStreamOfIterator<T>
 }
 
 //
-// AsyncStream Factory
+// AsyncIterableStream Factory
 //
 
-function asyncStreamFrom<T>(
+function asyncIterableStreamFrom<T>(
   it: Iterable<T> | Iterator<T> | AsyncIterable<T> | AsyncIterator<T>,
 ): AsyncIterableStream<T> {
   if (typeof it[Symbol.asyncIterator] === "function") {
