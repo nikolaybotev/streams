@@ -10,8 +10,7 @@ describe("tests that require Iterator Helpers", () => {
     Object.getPrototypeOf(Object.getPrototypeOf((function* () {})())),
   );
   if (typeof IteratorPrototype.map !== "function") {
-    test.skip(`Skipping Iterator Helper tests on ${process?.version}`, () => {});
-    return;
+    import("core-js/full/iterator");
   }
 
   test("map works as expected", () => {
