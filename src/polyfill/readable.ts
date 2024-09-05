@@ -1,20 +1,19 @@
 import { Readable, Duplex } from "stream";
-import { AsyncIterableStream } from "../index";
 import { streamLines } from "../source/lines";
 
 declare module "stream" {
   interface Readable {
-    streamLines(encoding?: BufferEncoding): AsyncIterableStream<string>;
+    lines(encoding?: BufferEncoding): AsyncIterableIterator<string>;
   }
   interface Duplex {
-    streamLines(encoding?: BufferEncoding): AsyncIterableStream<string>;
+    lines(encoding?: BufferEncoding): AsyncIterableIterator<string>;
   }
 }
 
-Readable.prototype.streamLines = function (encoding?: BufferEncoding) {
+Readable.prototype.lines = function (encoding?: BufferEncoding) {
   return streamLines(this, encoding);
 };
 
-Duplex.prototype.streamLines = function (encoding?: BufferEncoding) {
+Duplex.prototype.lines = function (encoding?: BufferEncoding) {
   return streamLines(this, encoding);
 };

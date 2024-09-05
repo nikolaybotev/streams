@@ -10,7 +10,7 @@ export interface Splitter<B, T, R> {
 export function readableAsyncIterator<T, R>(
   readable: Readable,
   by: Splitter<Buffer | string, T, R>,
-): AsyncIterator<T> {
+): AsyncIterableIterator<T> {
   const { next, ...pipe } = makePipe<T>();
 
   let remainder = by.initial();
@@ -29,22 +29,33 @@ export function readableAsyncIterator<T, R>(
       pipe.put(lastItem);
     }
 
-    cleanUp();
+    // Allow consumers to read any buffered data
+    cleanUp(false);
   };
 
   readable.on("data", dataListener);
   readable.on("end", endListener);
 
-  function cleanUp() {
-    pipe.close();
+  function cleanUp(clear: boolean) {
+    pipe.close(clear);
     readable.removeListener("data", dataListener);
     readable.removeListener("end", endListener);
   }
 
-  function iteratorReturn(): Promise<IteratorResult<T>> {
-    cleanUp();
+  function close(): Promise<IteratorResult<T>> {
+    // Clear the pipe buffers - no more reading after the iterator has been
+    // consumed.
+    cleanUp(true);
     return Promise.resolve({ done: true, value: undefined });
   }
 
-  return { next, return: iteratorReturn };
+  // Wrap the readable Iterator in an AsyncGenerator in order to ensure that
+  // AsyncIterator Helpers are available where implemented by the runtime.
+  const iterator = { next, return: close, throw: close };
+  const iterable = { [Symbol.asyncIterator]: () => iterator };
+  async function* generator() {
+    yield* iterable;
+  }
+
+  return generator();
 }

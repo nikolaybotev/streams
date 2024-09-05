@@ -1,4 +1,3 @@
-import { AsyncIterableStream } from "../index";
 import { promisify } from "node:util";
 import { randomBytes as randomBytesCb } from "node:crypto";
 
@@ -6,7 +5,7 @@ const randomBytes = promisify<number, Buffer>(randomBytesCb);
 
 export function streamSecureRandomBytes(
   bufferSize: number = 64,
-): AsyncIterableStream<number> {
+): AsyncIterableIterator<number> {
   async function* secureRandomSource() {
     while (true) {
       const data = await randomBytes(bufferSize);
@@ -14,5 +13,5 @@ export function streamSecureRandomBytes(
     }
   }
 
-  return AsyncIterableStream.from(secureRandomSource());
+  return secureRandomSource();
 }

@@ -1,6 +1,6 @@
-import "./asyncGenerator";
+import "./asyncIterator";
 
-test("AsyncGenerator.stream polyfill works", async () => {
+test("AsyncIterator.stream polyfill works", async () => {
   async function* gen() {
     yield* [1, 2, 3];
   }

@@ -1,5 +1,5 @@
 import "./array";
-import "./asyncGenerator";
+import "./asyncIterator";
 import "./map";
 import "./readable";
 import "./set";

@@ -1,5 +1,4 @@
 import { Readable } from "stream";
-import { AsyncIterableStream } from "../index";
 import { Splitter, readableAsyncIterator } from "./readableAsyncIterator";
 
 function stringSplitter(): Splitter<string, string, string> {
@@ -26,9 +25,7 @@ function stringSplitter(): Splitter<string, string, string> {
 export function streamLines(
   readable: Readable,
   encoding: BufferEncoding = "utf-8",
-): AsyncIterableStream<string> {
+): AsyncIterableIterator<string> {
   readable.setEncoding(encoding);
-  return AsyncIterableStream.from(
-    readableAsyncIterator(readable, stringSplitter()),
-  );
+  return readableAsyncIterator(readable, stringSplitter());
 }

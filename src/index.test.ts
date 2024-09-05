@@ -26,6 +26,7 @@ test("map() concurrent helpers - results are computed concurrently", async () =>
   const log = logger();
   const gen = [50, 10].streamAsync().map((n) =>
     streamInterval(n)
+      .stream()
       .map((_) => n)
       .peek((v) => log(v))
       .first(),

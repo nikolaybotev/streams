@@ -2,6 +2,7 @@
 // of Async Iterators and Generator functions.
 //
 
+import "./polyfill/asyncIterator";
 import { streamInterval } from "./source/interval";
 
 export function logger() {
@@ -344,12 +345,14 @@ test("async generator awaits promises before yielding", async () => {
   async function* generator() {
     log("generate first");
     const first = streamInterval(40)
+      .stream()
       .map((_) => "first")
       .peek(() => log("first produced"))
       .first();
     yield first;
     log("generate second");
     const second = streamInterval(20)
+      .stream()
       .map((_) => "second")
       .peek(() => log("second produced"))
       .first();

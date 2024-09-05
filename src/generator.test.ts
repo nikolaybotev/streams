@@ -1,6 +1,7 @@
 // Tests that determine various behaviors of Iterator Helpers
 //
 
+import "./polyfill/asyncIterator";
 import { streamInterval } from "./source/interval";
 
 describe("tests that require Iterator Helpers", () => {
@@ -74,8 +75,8 @@ describe("tests that require Iterator Helpers", () => {
 
   test("promises are not awaited by generators", () => {
     function* gen() {
-      yield streamInterval(10).first();
-      yield streamInterval(10).first();
+      yield streamInterval(10).stream().first();
+      yield streamInterval(10).stream().first();
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const a = gen() as any;

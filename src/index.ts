@@ -200,6 +200,10 @@ class AsyncIterableStreamOfIterator<T>
 {
   constructor(private readonly iterator: AsyncIterator<T>) {}
 
+  stream() {
+    return this;
+  }
+
   // The AsyncIterator protocol
   next(...args: [] | [undefined]) {
     return this.iterator.next(...args);
@@ -258,7 +262,7 @@ class AsyncIterableStreamOfIterator<T>
       return mapResult(sourceResult);
     };
 
-    const mappedIterator: AsyncIterator<U> = { next: nextMapped };
+    const mappedIterator = { next: nextMapped } as AsyncIterator<U>;
 
     if (this.iterator.return) {
       mappedIterator.return = (value?) => {
