@@ -115,30 +115,30 @@ export interface IteratorStream<T> extends IterableIterator<T> {
    * @param block
    */
   forEach(block: (_: T) => unknown): void;
+
   collect<A, R>(
     container: A,
     accumulator: (a: A, t: T) => void,
     finisher: (_: A) => R,
   ): R;
-  reduceLeft<R>(initial: R, accumulator: (r: R, t: T) => R): R;
 
   /**
    *
    * See also [IteratorHelpers#reduce](https://github.com/tc39/proposal-iterator-helpers#reducereducer--initialvalue-).
    *
-   * @param accumulator
+   * @param reducer
    * @param initial
    */
-  reduce(accumulator: (a: T, b: T) => T, initial?: T): T;
+  reduce<R = T>(reducer: (a: R, b: T) => R, initial?: R): R;
 
   /**
-   * Like {@link IteratorStream#reduce()} but returns `undefined` if this stream is
-   * empty instead of throwing `TypeError`.
+   * Like {@link reduce()} but returns `undefined` if this stream is empty
+   * instead of throwing `TypeError`.
    *
-   * @param accumulator
+   * @param reducer
    * @param initial
    */
-  fold(accumulator: (a: T, b: T) => T, initial?: T): T | undefined;
+  fold<R = T>(reducer: (a: R, b: T) => R, initial?: R): R | undefined;
 
   /**
    *
@@ -162,8 +162,8 @@ export interface IteratorStream<T> extends IterableIterator<T> {
   /**
    * Returns the first element that matches the predicate.
    *
-   * This is the same as the {@link first} method except that the predicate is
-   * required.
+   * This is the same as the {@link first()} method except that the predicate is
+   * required and a `TypeError` will be thrown if a predicate is not supplied.
    *
    * See also [IteratorHelpers#find](https://github.com/tc39/proposal-iterator-helpers#findfn).
    *
@@ -172,8 +172,11 @@ export interface IteratorStream<T> extends IterableIterator<T> {
   find(predicate: (_: T) => boolean): T | undefined;
 
   first(predicate?: (_: T) => boolean): T | undefined;
+
   last(predicate?: (_: T) => boolean): T | undefined;
+
   max(comparator: (a: T, b: T) => number): T | undefined;
+
   min(comparator: (a: T, b: T) => number): T | undefined;
 
   /**
@@ -352,14 +355,6 @@ class IteratorStreamOfIterator<T>
     return finisher(container);
   }
 
-  reduceLeft<R>(initial: R, reducer: (r: R, t: T) => R): R {
-    let result = initial;
-    for (const v of this) {
-      result = reducer(result, v);
-    }
-    return result;
-  }
-
   every(predicate: (_: T) => boolean): boolean {
     for (const v of this) {
       if (!predicate(v)) {
@@ -451,16 +446,16 @@ class IteratorStreamOfIterator<T>
     return result;
   }
 
-  reduce(adder: (a: T, b: T) => T, initial?: T): T {
+  reduce<R = T>(reducer: (a: R, b: T) => R, initial?: R): R {
     const hasInitial = arguments.length >= 2;
     let firstItem = !hasInitial;
     let result = initial;
     for (const v of this) {
       if (firstItem) {
-        result = v;
+        result = v as unknown as R; // R assumed to be T when no initial value
         firstItem = false;
       } else {
-        result = adder(result!, v);
+        result = reducer(result!, v);
       }
     }
     if (firstItem) {
@@ -469,16 +464,16 @@ class IteratorStreamOfIterator<T>
     return result!;
   }
 
-  fold(adder: (a: T, b: T) => T, initial?: T): T | undefined {
+  fold<R = T>(reducer: (a: R, b: T) => R, initial?: R): R | undefined {
     const hasInitial = arguments.length >= 2;
     let firstItem = !hasInitial;
     let result = initial;
     for (const v of this) {
       if (firstItem) {
-        result = v;
+        result = v as unknown as R; // R assumed to be T when no initial value
         firstItem = false;
       } else {
-        result = adder(result!, v);
+        result = reducer(result!, v);
       }
     }
     return result;
@@ -500,9 +495,6 @@ class IteratorStreamOfIterator<T>
 function iteratorStreamFrom<T>(
   it: Iterable<T> | Iterator<T>,
 ): IteratorStream<T> {
-  if (typeof it[Symbol.asyncIterator] === "function") {
-    return new IteratorStreamOfIterator(it[Symbol.asyncIterator]());
-  }
   if (typeof it[Symbol.iterator] === "function") {
     return new IteratorStreamOfIterator(it[Symbol.iterator]());
   }
