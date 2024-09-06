@@ -1,6 +1,6 @@
 import { Readable, Writable } from "node:stream";
 import { makePipe } from "../util/pipe";
-import { makeAsyncGenerator } from "./asyncGenerator";
+import { makeAsyncGenerator } from "./async-generator";
 
 export function readableChunks(
   readable: Readable,

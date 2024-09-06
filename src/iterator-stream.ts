@@ -1,4 +1,4 @@
-import { AsyncIteratorStream } from ".";
+import { AsyncIteratorStream } from "./async-iterator-stream";
 
 /**
  * An object containing factory methods for IteratorStream.

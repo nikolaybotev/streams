@@ -1,7 +1,7 @@
 // Tests that determine various behaviors of Iterator Helpers
 //
 
-import "./factories/asyncIterator";
+import "./factories/async-iterator";
 import { iteratorInterval } from "./sources/interval";
 
 describe("tests that require Iterator Helpers", () => {

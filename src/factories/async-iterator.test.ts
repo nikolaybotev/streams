@@ -1,4 +1,4 @@
-import "./asyncIterator";
+import "./async-iterator";
 
 test("AsyncIterator.stream works with async generator", async () => {
   async function* gen() {

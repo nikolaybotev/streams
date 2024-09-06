@@ -1,5 +1,5 @@
-import { AsyncIteratorStream } from "../index";
-import { IteratorStream } from "../sync";
+import { AsyncIteratorStream } from "../async-iterator-stream";
+import { IteratorStream } from "../iterator-stream";
 
 declare global {
   interface Generator<T> {

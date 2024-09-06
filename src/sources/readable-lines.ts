@@ -1,5 +1,5 @@
 import { Readable } from "node:stream";
-import { Splitter, readableSplit } from "./readableSplit";
+import { Splitter, readableSplit } from "./readable-split";
 
 function stringSplitter(
   encoding?: BufferEncoding,

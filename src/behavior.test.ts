@@ -2,7 +2,7 @@
 // of Async Iterators and Generator functions.
 //
 
-import "./factories/asyncIterator";
+import "./factories/async-iterator";
 import { iteratorInterval } from "./sources/interval";
 
 export function logger() {

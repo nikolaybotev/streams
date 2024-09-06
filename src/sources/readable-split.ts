@@ -1,5 +1,5 @@
 import { Readable } from "node:stream";
-import { readableChunks } from "./readableChunks";
+import { readableChunks } from "./readable-chunks";
 
 export interface Splitter<B, T, R = T> {
   initial(): R;

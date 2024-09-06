@@ -1,4 +1,4 @@
-import { AsyncIteratorStream } from "../index";
+import { AsyncIteratorStream } from "../async-iterator-stream";
 
 declare global {
   interface AsyncGenerator<T> {

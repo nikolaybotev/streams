@@ -1,5 +1,5 @@
 import { makePipe } from "../util/pipe";
-import { makeAsyncGenerator } from "./asyncGenerator";
+import { makeAsyncGenerator } from "./async-generator";
 
 type EventHandler<T> = (event: T) => unknown;
 
