@@ -1,8 +1,4 @@
-export function makeAsyncGenerator<
-  T = unknown,
-  TReturn = unknown,
-  TNext = undefined,
->(
+export function makeAsyncGenerator<T, TReturn = unknown, TNext = unknown>(
   start: () => void,
   next: (...args: [] | [TNext]) => Promise<IteratorResult<T, TReturn>>,
   stop: () => TReturn,
@@ -16,6 +12,20 @@ export function makeAsyncGenerator<
     return: doStop,
     throw: doStop,
   };
+  const iterable = { [Symbol.asyncIterator]: () => iterator };
+  async function* generator(): AsyncGenerator<T, TReturn, TNext> {
+    start();
+
+    return yield* iterable;
+  }
+
+  return generator();
+}
+
+export function makeAsyncGenerator2<T, TReturn = unknown, TNext = unknown>(
+  start: () => void,
+  iterator: AsyncIterator<T, TReturn, TNext>,
+): AsyncGenerator<T, TReturn, TNext> {
   const iterable = { [Symbol.asyncIterator]: () => iterator };
   async function* generator(): AsyncGenerator<T, TReturn, TNext> {
     start();

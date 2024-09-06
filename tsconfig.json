@@ -10,7 +10,7 @@
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strictPropertyInitialization": true,
-    "target": "es2018",
+    "target": "ES2023",
     "outDir": "."
   },
   "include": ["src/**/*"],

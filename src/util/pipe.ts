@@ -23,11 +23,11 @@ export function makePipe<T>() {
         nextInLine.reject(error!);
       }
       return Promise.resolve();
-    } else {
-      return new Promise<void>((resolve) => {
-        puts.push([message, resolve]);
-      });
     }
+
+    return new Promise<void>((resolve) => {
+      puts.push([message, resolve]);
+    });
   }
 
   function close() {

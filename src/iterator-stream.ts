@@ -192,7 +192,21 @@ export interface IteratorStream<T> extends IterableIterator<T> {
 class IteratorStreamOfIterator<T>
   implements IteratorStream<T>, IterableIterator<T>
 {
-  constructor(private readonly iterator: Iterator<T>) {}
+  readonly return?;
+  readonly throw?;
+
+  constructor(private readonly iterator: Iterator<T>) {
+    this.return = this.iterator.return
+      ? (value?: unknown) => {
+          return this.iterator.return!(value);
+        }
+      : undefined;
+    this.throw = this.iterator.throw
+      ? (e?: unknown) => {
+          return this.iterator.throw!(e);
+        }
+      : undefined;
+  }
 
   stream() {
     return IteratorStream.from(this);
@@ -206,18 +220,6 @@ class IteratorStreamOfIterator<T>
   next(...args: [] | [undefined]) {
     return this.iterator.next(...args);
   }
-
-  readonly return = this.iterator.return
-    ? (value?: unknown) => {
-        return this.iterator.return!(value);
-      }
-    : undefined;
-
-  readonly throw = this.iterator.throw
-    ? (e?: unknown) => {
-        return this.iterator.throw!(e);
-      }
-    : undefined;
 
   [Symbol.iterator]() {
     return this;

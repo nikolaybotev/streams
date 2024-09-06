@@ -198,7 +198,21 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
 class AsyncIteratorStreamOfIterator<T>
   implements AsyncIteratorStream<T>, AsyncIterableIterator<T>
 {
-  constructor(private readonly iterator: AsyncIterator<T>) {}
+  readonly return?;
+  readonly throw?;
+
+  constructor(private readonly iterator: AsyncIterator<T>) {
+    this.return = this.iterator.return
+      ? (value?: unknown) => {
+          return this.iterator.return!(value);
+        }
+      : undefined;
+    this.throw = this.iterator.throw
+      ? (e?: unknown) => {
+          return this.iterator.throw!(e);
+        }
+      : undefined;
+  }
 
   stream() {
     return this;
@@ -208,18 +222,6 @@ class AsyncIteratorStreamOfIterator<T>
   next(...args: [] | [undefined]) {
     return this.iterator.next(...args);
   }
-
-  readonly return = this.iterator.return
-    ? (value?: unknown) => {
-        return this.iterator.return!(value);
-      }
-    : undefined;
-
-  readonly throw = this.iterator.throw
-    ? (e?: unknown) => {
-        return this.iterator.throw!(e);
-      }
-    : undefined;
 
   [Symbol.asyncIterator]() {
     return this;
@@ -237,44 +239,48 @@ class AsyncIteratorStreamOfIterator<T>
   }
 
   map<U>(transform: (_: T) => U): AsyncIteratorStream<U> {
-    function mapResult(sourceResult) {
-      return new Promise<IteratorResult<U>>((resolve, reject) => {
-        Promise.resolve(sourceResult).then((result) => {
-          if (result.done) {
-            resolve(result);
-          } else {
-            // transform could return a Promise...
-            const transformed = transform(result.value);
-            Promise.resolve(transformed).then(
-              (value) => resolve({ value, done: false }),
-              reject,
-            );
-          }
-        }, reject);
-      });
-    }
+    function mapped(it: AsyncIteratorStream<T>) {
+      function mapResult(sourceResult: Promise<IteratorResult<T>>) {
+        return new Promise<IteratorResult<U>>((resolve, reject) => {
+          Promise.resolve(sourceResult).then((result) => {
+            if (result.done) {
+              resolve(result);
+            } else {
+              // transform could return a Promise...
+              const transformed = transform(result.value);
+              Promise.resolve(transformed).then(
+                (value) => resolve({ value, done: false }),
+                reject,
+              );
+            }
+          }, reject);
+        });
+      }
 
-    const nextMapped = (...args: [] | [undefined]) => {
-      const sourceResult = this.iterator.next(...args);
-      return mapResult(sourceResult);
-    };
-
-    const mappedIterator = { next: nextMapped } as AsyncIterator<U>;
-
-    if (this.iterator.return) {
-      mappedIterator.return = (value?) => {
-        const sourceResult = this.iterator.return!(value);
+      const nextMapped = (...args: [] | [undefined]) => {
+        const sourceResult = it.next(...args);
         return mapResult(sourceResult);
       };
-    }
 
-    if (this.iterator.throw) {
-      mappedIterator.throw = (e?) => {
-        const sourceResult = this.iterator.throw!(e);
-        return mapResult(sourceResult);
-      };
+      const mappedIterator = { next: nextMapped } as AsyncIterator<U>;
+
+      if (it.return) {
+        mappedIterator.return = (value?) => {
+          const sourceResult = it.return!(value);
+          return mapResult(sourceResult);
+        };
+      }
+
+      if (it.throw) {
+        mappedIterator.throw = (e?) => {
+          const sourceResult = it.throw!(e);
+          return mapResult(sourceResult);
+        };
+      }
+
+      return mappedIterator;
     }
-    return new AsyncIteratorStreamOfIterator(mappedIterator);
+    return new AsyncIteratorStreamOfIterator(mapped(this));
   }
 
   mapAwait<U>(transform: (_: T) => Promise<U>): AsyncIteratorStream<U> {
