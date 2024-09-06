@@ -69,8 +69,8 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
   map<U>(transform: (_: T) => U): AsyncIteratorStream<U>;
 
   /**
-   * Like `map` but the `transform` is an async function that returns a Promise
-   * and is awaited before producing the next transformed element.
+   * Like `map` but the result from each call to `transform` is awaited
+   * before producing the next transformed element.
    *
    * @param transform an async function to apply to each element of this stream
    */
@@ -121,30 +121,30 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
    * @param block
    */
   forEach(block: (_: T) => unknown | Promise<unknown>): Promise<void>;
+
   collect<A, R>(
     container: A,
     accumulator: (a: A, t: T) => void,
     finisher: (_: A) => R,
   ): Promise<R>;
-  reduceLeft<R>(initial: R, accumulator: (r: R, t: T) => R): Promise<R>;
 
   /**
    *
    * See also [IteratorHelpers#reduce](https://github.com/tc39/proposal-iterator-helpers#reducereducer--initialvalue-).
    *
-   * @param accumulator
+   * @param reducer
    * @param initial
    */
-  reduce(accumulator: (a: T, b: T) => T, initial?: T): Promise<T>;
+  reduce<R = T>(reducer: (a: R, b: T) => R, initial?: R): Promise<R>;
 
   /**
-   * Like {@link AsyncIteratorStream#reduce()} but returns `undefined` if this stream is
-   * empty instead of throwing `TypeError`.
+   * Like {@link reduce()} but returns `undefined` if this stream is empty
+   * instead of throwing `TypeError`.
    *
-   * @param accumulator
+   * @param reducer
    * @param initial
    */
-  fold(accumulator: (a: T, b: T) => T, initial?: T): Promise<T | undefined>;
+  fold<R = T>(reducer: (a: R, b: T) => R, initial?: R): Promise<R | undefined>;
 
   /**
    *
@@ -168,8 +168,8 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
   /**
    * Returns the first element that matches the predicate.
    *
-   * This is the same as the {@link first} method except that the predicate is
-   * required.
+   * This is the same as the {@link first()} method except that the predicate is
+   * required and a `TypeError` will be thrown if a predicate is not supplied.
    *
    * See also [IteratorHelpers#find](https://github.com/tc39/proposal-iterator-helpers#findfn).
    *
@@ -178,8 +178,11 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
   find(predicate: (_: T) => boolean): Promise<T | undefined>;
 
   first(predicate?: (_: T) => boolean): Promise<T | undefined>;
+
   last(predicate?: (_: T) => boolean): Promise<T | undefined>;
+
   max(comparator: (a: T, b: T) => number): Promise<T | undefined>;
+
   min(comparator: (a: T, b: T) => number): Promise<T | undefined>;
 
   /**
@@ -395,14 +398,6 @@ class AsyncIteratorStreamOfIterator<T>
     return finisher(container);
   }
 
-  async reduceLeft<R>(initial: R, reducer: (r: R, t: T) => R): Promise<R> {
-    let result = initial;
-    for await (const v of this) {
-      result = reducer(result, v);
-    }
-    return result;
-  }
-
   async every(predicate: (_: T) => boolean): Promise<boolean> {
     for await (const v of this) {
       if (!(await predicate(v))) {
@@ -498,16 +493,16 @@ class AsyncIteratorStreamOfIterator<T>
     return result;
   }
 
-  async reduce(adder: (a: T, b: T) => T, initial?: T): Promise<T> {
+  async reduce<R = T>(reducer: (a: R, b: T) => R, initial?: R): Promise<R> {
     const hasInitial = arguments.length >= 2;
     let firstItem = !hasInitial;
     let result = initial;
     for await (const v of this) {
       if (firstItem) {
-        result = v;
+        result = v as R; // R is assumed to be T when there is no initial value
         firstItem = false;
       } else {
-        result = adder(result!, v);
+        result = reducer(result!, v);
       }
     }
     if (firstItem) {
@@ -516,16 +511,19 @@ class AsyncIteratorStreamOfIterator<T>
     return result!;
   }
 
-  async fold(adder: (a: T, b: T) => T, initial?: T): Promise<T | undefined> {
+  async fold<R = T>(
+    reducer: (a: R, b: T) => R,
+    initial?: R,
+  ): Promise<R | undefined> {
     const hasInitial = arguments.length >= 2;
     let firstItem = !hasInitial;
     let result = initial;
     for await (const v of this) {
       if (firstItem) {
-        result = v;
+        result = v as R; // R is assumed to be T when there is no initial value
         firstItem = false;
       } else {
-        result = adder(result!, v);
+        result = reducer(result!, v);
       }
     }
     return result;
