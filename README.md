@@ -8,11 +8,12 @@ A lazy streams library for functional composition in JavaScript.
 import "streams/factories";
 
 process.stdin
-  .streamLines()
+  .lines()
+  .stream()
   .map((s) => s.toLocaleUpperCase())
   .filter((s) => s.length > 3)
   .batch(3)
-  .limit(2)
+  .take(2)
   .forEach(console.log)
   .then((_) => console.log("-- all done --"));
 ```
