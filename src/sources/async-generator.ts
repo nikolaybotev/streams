@@ -1,8 +1,4 @@
-export function makeAsyncGenerator<
-  T = unknown,
-  TReturn = unknown,
-  TNext = undefined,
->(
+export function makeAsyncGenerator<T, TReturn = unknown, TNext = unknown>(
   start: () => void,
   next: (...args: [] | [TNext]) => Promise<IteratorResult<T, TReturn>>,
   stop: () => TReturn,
