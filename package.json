@@ -5,7 +5,8 @@
   "main": "index.js",
   "files": [
     "**/*.js",
-    "**/*.d.ts"
+    "**/*.d.ts",
+    "!demos/**"
   ],
   "scripts": {
     "build": "run-s format:check eslint clean tsc",
@@ -41,11 +42,14 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@types/core-js": "^2.5.8",
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^29.5.12",
     "@types/node": "^22.5.3",
+    "core-js": "^3.38.1",
     "del-cli": "^5.1.0",
     "eslint": "^9.9.1",
+    "globals": "^15.9.0",
     "jest": "^29.7.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.3.3",
