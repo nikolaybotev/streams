@@ -1,19 +1,16 @@
-import { Readable } from "stream";
-import { createInterface } from "node:readline/promises";
+import { Readable } from "node:stream";
+import { createInterface } from "node:readline";
 
 export async function* readableLines(
   readable: Readable,
   encoding: BufferEncoding = "utf-8",
-): AsyncGenerator<string> {
+): AsyncGenerator<string, void, undefined> {
   readable.setEncoding(encoding);
   const rl = createInterface({
     input: readable,
   });
   try {
-    while (true) {
-      const line = rl.question("");
-      yield line;
-    }
+    yield* rl;
   } finally {
     rl.close();
   }

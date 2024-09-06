@@ -1,4 +1,4 @@
-import { Readable } from "stream";
+import { Readable } from "node:stream";
 import { Splitter, readableSplit } from "./readableSplit";
 
 function stringSplitter(

@@ -1,37 +1,40 @@
 import { makePipe } from "../util/pipe";
 import { makeAsyncGenerator } from "./asyncGenerator";
 
-type EventHandler = (event) => unknown;
+type EventHandler<T> = (event: T) => unknown;
 
-type EventEmitter = {
+type EventEmitter<T> = {
   // jQuery and Node.js NodeEventTarget & EventEmitter
   // https://api.jquery.com/on/
   // https://nodejs.org/api/events.html
-  on?(eventName: string | symbol, listener: EventHandler): unknown;
-  off?(eventName: string | symbol, listener: EventHandler): unknown;
+  on?(eventName: string | symbol, listener: EventHandler<T>): unknown;
+  off?(eventName: string | symbol, listener: EventHandler<T>): unknown;
 
   // Node.js NodeEventTarget & EventEmitter
   // https://nodejs.org/api/events.html
-  addListener?(eventName: string | symbol, listener: EventHandler): unknown;
-  removeListener?(eventName: string | symbol, listener: EventHandler): unknown;
+  addListener?(eventName: string | symbol, listener: EventHandler<T>): unknown;
+  removeListener?(
+    eventName: string | symbol,
+    listener: EventHandler<T>,
+  ): unknown;
 
   // DOM EventTarget and Node.js EventTarget
   // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
   // https://nodejs.org/api/events.html
   addEventListener?(
     eventName: string | symbol,
-    listener: EventHandler,
+    listener: EventHandler<T>,
     options?: object,
   ): unknown;
   removeEventListener?(
     eventName: string | symbol,
-    listener: EventHandler,
+    listener: EventHandler<T>,
     options?: object,
   ): unknown;
 };
 
 export function fromEvent<T>(
-  target: EventEmitter,
+  target: EventEmitter<T>,
   eventName: string | symbol,
   options?: object,
 ): AsyncGenerator<T> {
@@ -55,18 +58,20 @@ export function fromEvent<T>(
 }
 
 export function fromEventPattern<T>(
-  addHandler: (handler: EventHandler) => unknown,
-  removeHandler?: (handler: EventHandler) => void,
+  addHandler: (handler: EventHandler<T>) => unknown,
+  removeHandler?: (handler: EventHandler<T>) => void,
 ): AsyncGenerator<T> {
   const { next, put, close } = makePipe<T>();
 
+  const handler: EventHandler<T> = (value) => put({ value });
+
   function start() {
-    addHandler(put);
+    addHandler(handler);
   }
 
   function stop() {
     close();
-    removeHandler?.(put);
+    removeHandler?.(handler);
   }
 
   return makeAsyncGenerator(start, next, stop);

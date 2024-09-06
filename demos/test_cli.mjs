@@ -1,4 +1,4 @@
-import "../factories";
+import "../factories/index.js";
 
 console.log("Start", process.stdin.readableFlowing);
 
