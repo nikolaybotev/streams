@@ -21,3 +21,17 @@ export function makeAsyncGenerator<T, TReturn = unknown, TNext = unknown>(
 
   return generator();
 }
+
+export function makeAsyncGenerator2<T, TReturn = unknown, TNext = unknown>(
+  start: () => void,
+  iterator: AsyncIterator<T, TReturn, TNext>,
+): AsyncGenerator<T, TReturn, TNext> {
+  const iterable = { [Symbol.asyncIterator]: () => iterator };
+  async function* generator(): AsyncGenerator<T, TReturn, TNext> {
+    start();
+
+    return yield* iterable;
+  }
+
+  return generator();
+}

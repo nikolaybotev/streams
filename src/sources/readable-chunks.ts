@@ -1,17 +1,17 @@
 import { Readable, Writable } from "node:stream";
-import { makePipe } from "../util/pipe";
-import { makeAsyncGenerator } from "./async-generator";
+import { makeAsyncIteratorPair } from "../util/async-iterator-pair";
+import { makeAsyncGenerator2 } from "./async-generator";
 
 export function readableChunks(
   readable: Readable,
   encoding?: BufferEncoding,
 ): AsyncGenerator<Buffer> {
-  const { next, ...pipe } = makePipe<Buffer>();
+  const [consumer, producer] = makeAsyncIteratorPair<Buffer>(stop, stop);
 
   const writable = new Writable({
     defaultEncoding: encoding,
     write(chunk: Buffer, _encoding, callback) {
-      const put = pipe.put({ value: chunk });
+      const put = producer.next(chunk);
 
       // Apply back-pressure by awaiting consumption of produced items...
       put.then(() => callback());
@@ -19,13 +19,12 @@ export function readableChunks(
   });
 
   const errorListener = (error) => {
-    pipe.put({ error });
-    stop();
+    producer.throw!(error);
   };
 
   const endListener = () => {
     // Allow consumers to read any buffered data
-    stop();
+    producer.return!();
   };
 
   function start() {
@@ -39,12 +38,11 @@ export function readableChunks(
   }
 
   function stop() {
-    pipe.close();
     readable.unpipe(writable);
     readable.off("end", endListener);
     readable.off("close", endListener);
     readable.off("error", errorListener);
   }
 
-  return makeAsyncGenerator(start, next, stop);
+  return makeAsyncGenerator2(start, consumer);
 }

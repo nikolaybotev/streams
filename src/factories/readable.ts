@@ -1,5 +1,5 @@
 import { Readable, Duplex } from "node:stream";
-import { readableLines } from "../sources/readable-lines2";
+import { readableLines } from "../sources/readable-lines";
 import { readableChunks } from "../sources/readable-chunks";
 
 declare module "node:stream" {
