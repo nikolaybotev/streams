@@ -3,8 +3,8 @@
  * https://jestjs.io/docs/configuration
  */
 
-import type {Config} from 'jest';
- 
+import type { Config } from "jest";
+
 const config: Config = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
@@ -36,12 +36,7 @@ const config: Config = {
   coverageProvider: "babel",
 
   // A list of reporter names that Jest uses when writing coverage reports
-  coverageReporters: [
-    "json",
-    "json-summary",
-    "text",
-    "lcov",
-  ],
+  coverageReporters: ["json", "json-summary", "text", "lcov"],
 
   // An object that configures minimum threshold enforcement for coverage results
   // coverageThreshold: undefined,
@@ -126,9 +121,7 @@ const config: Config = {
   // rootDir: undefined,
 
   // A list of paths to directories that Jest should use to search for files in
-  roots: [
-    "./src"
-  ],
+  roots: ["./src"],
 
   // Allows you to use a custom runner instead of Jest's default test runner
   // runner: "jest-runner",
@@ -176,7 +169,7 @@ const config: Config = {
 
   // A map from regular expressions to paths to transformers
   transform: {
-    "\\.[jt]sx?$": "ts-jest"
+    "\\.[jt]sx?$": "ts-jest",
   },
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
