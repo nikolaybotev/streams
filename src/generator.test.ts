@@ -5,7 +5,7 @@ import "./factories/async-iterator";
 import { iteratorInterval } from "./sources/interval";
 
 describe("tests that require Iterator Helpers", () => {
-  // Skip these tests if the runtime does not have Iterator Helpers implemented
+  // Load Iterator Helpers from core-js if not available.
   const IteratorPrototype = Object.getPrototypeOf(
     Object.getPrototypeOf(Object.getPrototypeOf((function* () {})())),
   );
