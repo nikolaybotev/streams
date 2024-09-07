@@ -10,8 +10,12 @@ type Invocation<T, TReturn, TNext> = {
 };
 
 export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
-  onReturn?: (sender?: AsyncIterator<unknown, TReturn, unknown>) => unknown,
-  onThrow?: (sender?: AsyncIterator<unknown, TReturn, unknown>) => unknown,
+  onReturn?: (
+    sender?: AsyncIterator<unknown, TReturn, unknown>,
+  ) => Promise<TReturn> | TReturn,
+  onThrow?: (
+    sender?: AsyncIterator<unknown, TReturn, unknown>,
+  ) => Promise<TReturn> | TReturn,
 ): [AsyncGenerator<T, TReturn, TNext>, AsyncGenerator<TNext, TReturn, T>] {
   const puts: Invocation<T, TReturn, TNext>[] = [];
   const takes: Invocation<TNext, TReturn, T>[] = [];
@@ -45,10 +49,11 @@ export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
         }
 
         // Special case: drain the other side's queue if done
-        if (send.m?.done) {
+        if (send.m?.done || send.error !== undefined) {
           for (const { response } of takes) {
             response?.resolve({ done: true, value: undefined as TReturn });
           }
+          takes.length = 0;
         }
 
         // Receive the other side's message.
@@ -59,12 +64,17 @@ export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
           }
           return Promise.resolve(m);
         } else {
+          done = true;
           return Promise.reject(error);
         }
       }
 
       // We are here first... send the other side our message and await
       // the other side's response.
+      // if (send.m?.done) {
+      //   // ... unless we are sending
+      //   return Promise.resolve({ done: true, value: undefined as TReturn });
+      // }
       return new Promise((resolve, reject) => {
         puts.push({ message: send, response: { resolve, reject } });
       });
@@ -79,13 +89,23 @@ export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
       next(value?) {
         return next({ m: { value: value!, done: false } });
       },
-      return(value?) {
-        onReturn?.(this);
-        return next({ m: { value: value as TReturn, done: true } });
+      async return(value?) {
+        if (done) {
+          return { value: undefined as TReturn, done: true };
+        }
+        next({ m: { value: value as TReturn, done: true } });
+        done = true;
+        const returnValue = await onReturn?.(this);
+        return { value: returnValue as TReturn, done: true };
       },
-      throw(error?) {
-        (onThrow ?? onReturn)?.(this);
-        return next({ error });
+      async throw(error?) {
+        if (done) {
+          return { value: undefined as TReturn, done: true };
+        }
+        next({ error });
+        done = true;
+        const returnValue = await (onThrow ?? onReturn)?.(this);
+        return { value: returnValue as TReturn, done: true };
       },
     };
   }

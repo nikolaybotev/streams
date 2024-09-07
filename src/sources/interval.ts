@@ -1,5 +1,4 @@
-import { makePipe } from "../util/pipe";
-import { makeAsyncGenerator } from "./async-generator";
+import { EventHandler, fromEventPattern } from "./event";
 
 export interface IntervalScheduler<T = unknown> {
   schedule(interval: number, listener: () => unknown): T;
@@ -19,21 +18,18 @@ export function iteratorInterval(
   periodMillis: number,
   scheduler: IntervalScheduler = defaultScheduler,
 ): AsyncGenerator<number> {
-  const { next, ...pipe } = makePipe<number>();
+  let timer: unknown;
 
-  let timer;
-
-  function start() {
+  function startTimer(handler: EventHandler<number>) {
     let n = 0;
     timer = scheduler.schedule(periodMillis, () => {
-      pipe.put({ value: n++ });
+      handler(n++);
     });
   }
 
-  function stop() {
-    pipe.close();
+  function stopTimer() {
     scheduler.cancel(timer);
   }
 
-  return makeAsyncGenerator(start, next, stop);
+  return fromEventPattern(startTimer, stopTimer);
 }

@@ -1,7 +1,6 @@
-import { makePipe } from "../util/pipe";
-import { makeAsyncGenerator } from "./async-generator";
+import { makeAsyncGeneratorPair } from "../util/async-iterator-pair";
 
-type EventHandler<T> = (event: T) => unknown;
+export type EventHandler<T> = (event: T) => unknown;
 
 type EventEmitter<T> = {
   // jQuery and Node.js NodeEventTarget & EventEmitter
@@ -61,18 +60,23 @@ export function fromEventPattern<T>(
   addHandler: (handler: EventHandler<T>) => unknown,
   removeHandler?: (handler: EventHandler<T>) => void,
 ): AsyncGenerator<T> {
-  const { next, put, close } = makePipe<T>();
+  const [eventConsumer, eventProducer] = makeAsyncGeneratorPair<T>(stop);
 
-  const handler: EventHandler<T> = (value) => put({ value });
+  const eventHandler = (value: T) => eventProducer.next(value);
 
   function start() {
-    addHandler(handler);
+    addHandler(eventHandler);
   }
 
   function stop() {
-    close();
-    removeHandler?.(handler);
+    removeHandler?.(eventHandler);
   }
 
-  return makeAsyncGenerator(start, next, stop);
+  async function* eventGenerator(): AsyncGenerator<T, void, undefined> {
+    start();
+
+    return yield* eventConsumer;
+  }
+
+  return eventGenerator();
 }
