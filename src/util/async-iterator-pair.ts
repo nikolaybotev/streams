@@ -9,18 +9,18 @@ type Invocation<T, TReturn, TNext> = {
   response?: Resolver<IteratorResult<T>>;
 };
 
-export function makeAsyncIteratorPair<T, TReturn = void, TNext = undefined>(
+export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
   onReturn?: (sender?: AsyncIterator<unknown, TReturn, unknown>) => unknown,
   onThrow?: (sender?: AsyncIterator<unknown, TReturn, unknown>) => unknown,
-): [AsyncIterator<T, TReturn, TNext>, AsyncIterator<TNext, TReturn, T>] {
+): [AsyncGenerator<T, TReturn, TNext>, AsyncGenerator<TNext, TReturn, T>] {
   const puts: Invocation<T, TReturn, TNext>[] = [];
   const takes: Invocation<TNext, TReturn, T>[] = [];
 
-  function makeAsyncIterator<T, TNext>(
+  function makeAsyncGenerator<T, TNext>(
     name: string,
     puts: Invocation<T, TReturn, TNext>[],
     takes: Invocation<TNext, TReturn, T>[],
-  ): AsyncIterator<T, TReturn, TNext> {
+  ): AsyncGenerator<T, TReturn, TNext> {
     let done = false;
 
     function next(
@@ -73,6 +73,9 @@ export function makeAsyncIteratorPair<T, TReturn = void, TNext = undefined>(
     return {
       // @ts-expect-error for Debugging
       [Symbol.toStringTag]: `AsyncIterator${name}`,
+      [Symbol.asyncIterator]() {
+        return this;
+      },
       next(value?) {
         return next({ m: { value: value!, done: false } });
       },
@@ -88,7 +91,7 @@ export function makeAsyncIteratorPair<T, TReturn = void, TNext = undefined>(
   }
 
   return [
-    makeAsyncIterator("Consumer", puts, takes),
-    makeAsyncIterator("Producer", takes, puts),
+    makeAsyncGenerator("Consumer", puts, takes),
+    makeAsyncGenerator("Producer", takes, puts),
   ];
 }

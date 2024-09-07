@@ -6,12 +6,12 @@ export async function* readableLines(
   encoding: BufferEncoding = "utf-8",
 ): AsyncGenerator<string, void, undefined> {
   readable.setEncoding(encoding);
-  const rl = createInterface({
+  const readline = createInterface({
     input: readable,
   });
   try {
-    yield* rl;
+    yield* readline;
   } finally {
-    rl.close();
+    readline.close();
   }
 }

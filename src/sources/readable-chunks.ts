@@ -1,12 +1,12 @@
 import { Readable, Writable } from "node:stream";
-import { makeAsyncIteratorPair } from "../util/async-iterator-pair";
-import { makeAsyncGenerator2 } from "./async-generator";
+import { makeAsyncGeneratorPair } from "../util/async-iterator-pair";
+import { makeLazyAsyncGenerator } from "./async-generator";
 
 export function readableChunks(
   readable: Readable,
   encoding?: BufferEncoding,
 ): AsyncGenerator<Buffer> {
-  const [consumer, producer] = makeAsyncIteratorPair<Buffer>(stop, stop);
+  const [consumer, producer] = makeAsyncGeneratorPair<Buffer>(stop, stop);
 
   const writable = new Writable({
     defaultEncoding: encoding,
@@ -44,5 +44,5 @@ export function readableChunks(
     readable.off("error", errorListener);
   }
 
-  return makeAsyncGenerator2(start, consumer);
+  return makeLazyAsyncGenerator(start, consumer);
 }
