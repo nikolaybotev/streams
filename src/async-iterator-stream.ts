@@ -122,10 +122,10 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
    */
   forEach(block: (_: T) => unknown | Promise<unknown>): Promise<void>;
 
-  collect<A, R>(
+  collect<A, R = A>(
     container: A,
     accumulator: (a: A, t: T) => void,
-    finisher: (_: A) => R,
+    finisher?: (_: A) => R,
   ): Promise<R>;
 
   /**
@@ -396,12 +396,12 @@ class AsyncIteratorStreamOfIterator<T>
   async collect<A, R>(
     container: A,
     accumulator: (a: A, t: T) => void,
-    finisher: (_: A) => R,
+    finisher?: (_: A) => R,
   ): Promise<R> {
     for await (const v of this) {
       accumulator(container, v);
     }
-    return finisher(container);
+    return finisher ? finisher(container) : (container as unknown as R);
   }
 
   async every(predicate: (_: T) => boolean): Promise<boolean> {

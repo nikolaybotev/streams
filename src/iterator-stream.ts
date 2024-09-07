@@ -116,10 +116,10 @@ export interface IteratorStream<T> extends IterableIterator<T> {
    */
   forEach(block: (_: T) => unknown): void;
 
-  collect<A, R>(
+  collect<A, R = A>(
     container: A,
     accumulator: (a: A, t: T) => void,
-    finisher: (_: A) => R,
+    finisher?: (_: A) => R,
   ): R;
 
   /**
@@ -346,15 +346,15 @@ class IteratorStreamOfIterator<T>
     }
   }
 
-  collect<A, R>(
+  collect<A, R = A>(
     container: A,
     accumulator: (a: A, t: T) => void,
-    finisher: (_: A) => R,
+    finisher?: (_: A) => R,
   ): R {
     for (const v of this) {
       accumulator(container, v);
     }
-    return finisher(container);
+    return finisher ? finisher(container) : (container as unknown as R);
   }
 
   every(predicate: (_: T) => boolean): boolean {
