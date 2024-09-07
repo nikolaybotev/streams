@@ -1,57 +1,33 @@
 import { makeAsyncGeneratorPair } from "./async-iterator-pair";
 
 export function makeAsyncIteratorTee<T>(
-  it: AsyncIterator<T>,
-): Iterator<AsyncIterator<T>> {
+  iterator: AsyncIterator<T>,
+): Generator<AsyncIterator<T>> {
   const producers = [] as {
     producer: AsyncGenerator<undefined, void, T>;
     stopped: boolean;
   }[];
   let stoppedProducerCount = 0;
-  let allConsumersReturned = false;
+  let completed = false;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  function teeLoopSync() {
-    if (allConsumersReturned) {
-      return;
-    }
-
-    it.next().then(
-      (result) => {
-        if (!result.done) {
-          producers.forEach(({ producer }) => producer.next(result.value));
-        } else {
-          producers.forEach(({ producer }) => producer.return(result.value));
-        }
-
-        teeLoopSync();
-      },
-      (e) => {
-        producers.forEach(({ producer }) => producer.throw(e));
-
-        teeLoopSync();
-      },
-    );
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async function teeLoop() {
-    if (allConsumersReturned) {
+  async function readLoop() {
+    if (completed) {
       return;
     }
 
     try {
-      const result = await it.next();
+      const result = await iterator.next();
       if (!result.done) {
         producers.forEach(({ producer }) => producer.next(result.value));
       } else {
+        completed = true;
         producers.forEach(({ producer }) => producer.return(result.value));
       }
     } catch (e) {
       producers.forEach(({ producer }) => producer.throw(e));
     }
 
-    teeLoop();
+    readLoop();
   }
 
   function teeNext(): IteratorResult<AsyncIterator<T>> {
@@ -63,8 +39,8 @@ export function makeAsyncIteratorTee<T>(
         tee.stopped = true;
         stoppedProducerCount += 1;
         if (stoppedProducerCount == producers.length) {
-          allConsumersReturned = true;
-          await it.return?.();
+          completed = true;
+          await iterator.return?.();
         }
       }
     }
@@ -78,9 +54,12 @@ export function makeAsyncIteratorTee<T>(
     return { value: consumer, done: false };
   }
 
-  teeLoopSync();
+  readLoop();
 
-  return {
-    next: teeNext,
-  };
+  // Wrap in a generator in order to expose iterator helpers
+  function* iteratorTee() {
+    yield* { [Symbol.iterator]: () => ({ next: teeNext }) };
+  }
+
+  return iteratorTee();
 }
