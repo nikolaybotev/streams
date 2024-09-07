@@ -259,6 +259,7 @@ test("async generator sent early return delays return", async () => {
   const x = gen1();
 
   expect(await x.next()).toEqual({ value: 1, done: false });
+  // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator/return#done
   expect(await x.return(5)).toEqual({ value: 9, done: false });
   log("after early return");
   expect(await x.next()).toEqual({ value: 10, done: false });

@@ -1,9 +1,5 @@
-export function iteratorRandom(): Generator<number> {
-  function* randomSource() {
-    while (true) {
-      yield Math.random();
-    }
+export function* iteratorRandom(): Generator<number> {
+  while (true) {
+    yield Math.random();
   }
-
-  return randomSource();
 }
