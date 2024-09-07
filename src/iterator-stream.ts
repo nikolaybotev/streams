@@ -1,4 +1,5 @@
 import { AsyncIteratorStream } from "./async-iterator-stream";
+import { fromIterator } from "./sources/iterator";
 
 /**
  * An object containing factory methods for IteratorStream.
@@ -213,7 +214,7 @@ class IteratorStreamOfIterator<T>
   }
 
   streamAsync() {
-    return AsyncIteratorStream.from(this);
+    return AsyncIteratorStream.from(fromIterator(this.iterator));
   }
 
   // The AsyncIterator protocol

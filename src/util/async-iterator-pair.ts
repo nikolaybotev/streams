@@ -9,13 +9,20 @@ type Invocation<T, TReturn, TNext> = {
   response?: Resolver<IteratorResult<T>>;
 };
 
-export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
+type ControlFlowHandlers<TReturn> = {
   onReturn?: (
     sender?: AsyncIterator<unknown, TReturn, unknown>,
-  ) => Promise<TReturn> | TReturn,
+    value?: TReturn | PromiseLike<TReturn>,
+  ) => Promise<TReturn> | TReturn;
   onThrow?: (
     sender?: AsyncIterator<unknown, TReturn, unknown>,
-  ) => Promise<TReturn> | TReturn,
+    e?: unknown,
+  ) => Promise<TReturn> | TReturn;
+};
+
+export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
+  consumerHandlers?: ControlFlowHandlers<TReturn>,
+  producerHandlers?: ControlFlowHandlers<TReturn>,
 ): [AsyncGenerator<T, TReturn, TNext>, AsyncGenerator<TNext, TReturn, T>] {
   const puts: Invocation<T, TReturn, TNext>[] = [];
   const takes: Invocation<TNext, TReturn, T>[] = [];
@@ -24,6 +31,7 @@ export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
     name: string,
     puts: Invocation<T, TReturn, TNext>[],
     takes: Invocation<TNext, TReturn, T>[],
+    { onReturn, onThrow }: ControlFlowHandlers<TReturn> = {},
   ): AsyncGenerator<T, TReturn, TNext> {
     let done = false;
 
@@ -91,7 +99,7 @@ export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
         }
         next({ m: { value: value as TReturn, done: true } });
         done = true;
-        const returnValue = await onReturn?.(this);
+        const returnValue = await onReturn?.(this, value);
         return { value: returnValue as TReturn, done: true };
       },
       async throw(error?) {
@@ -100,14 +108,14 @@ export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
         }
         next({ error });
         done = true;
-        const returnValue = await (onThrow ?? onReturn)?.(this);
+        const returnValue = await (onThrow ?? onReturn)?.(this, error);
         return { value: returnValue as TReturn, done: true };
       },
     };
   }
 
   return [
-    makeAsyncGenerator("Consumer", puts, takes),
-    makeAsyncGenerator("Producer", takes, puts),
+    makeAsyncGenerator("Consumer", puts, takes, consumerHandlers),
+    makeAsyncGenerator("Producer", takes, puts, producerHandlers),
   ];
 }

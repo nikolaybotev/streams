@@ -60,7 +60,9 @@ export function fromEventPattern<T>(
   addHandler: (handler: EventHandler<T>) => unknown,
   removeHandler?: (handler: EventHandler<T>) => void,
 ): AsyncGenerator<T> {
-  const [eventConsumer, eventProducer] = makeAsyncGeneratorPair<T>(stop);
+  const [eventConsumer, eventProducer] = makeAsyncGeneratorPair<T>({
+    onReturn: stop,
+  });
 
   const eventHandler = (value: T) => eventProducer.next(value);
 

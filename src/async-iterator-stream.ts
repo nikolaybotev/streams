@@ -1,3 +1,5 @@
+import { fromIterator } from "./sources/iterator";
+
 /**
  * An object containing factory methods for AsyncIteratorStream.
  *
@@ -553,13 +555,15 @@ class AsyncIteratorStreamOfIterator<T>
 //
 
 function asyncIteratorStreamFrom<T>(
-  it: Iterable<T> | Iterator<T> | AsyncIterable<T> | AsyncIterator<T>,
+  it: Iterable<T> | AsyncIterable<T> | AsyncIterator<T>,
 ): AsyncIteratorStream<T> {
   if (typeof it[Symbol.asyncIterator] === "function") {
     return new AsyncIteratorStreamOfIterator(it[Symbol.asyncIterator]());
   }
   if (typeof it[Symbol.iterator] === "function") {
-    return new AsyncIteratorStreamOfIterator(it[Symbol.iterator]());
+    return new AsyncIteratorStreamOfIterator(
+      fromIterator(it[Symbol.iterator]()),
+    );
   }
   return new AsyncIteratorStreamOfIterator(it as AsyncIterator<T>);
 }
