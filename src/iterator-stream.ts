@@ -226,32 +226,32 @@ class IteratorStreamOfIterator<T>
   }
 
   filter(predicate: (_: T) => boolean): IteratorStream<T> {
-    function* filtered(it: IteratorStream<T>) {
+    function* filterOperator(it: IteratorStream<T>) {
       for (const v of it) {
         if (predicate(v)) {
           yield v;
         }
       }
     }
-    return new IteratorStreamOfIterator(filtered(this));
+    return new IteratorStreamOfIterator(filterOperator(this));
   }
 
   map<U>(transform: (_: T) => U): IteratorStream<U> {
-    function* mapped(it: IteratorStream<T>) {
+    function* mapOperator(it: IteratorStream<T>) {
       for (const v of it) {
         yield transform(v);
       }
     }
-    return new IteratorStreamOfIterator(mapped(this));
+    return new IteratorStreamOfIterator(mapOperator(this));
   }
 
   flatMap<U>(transform: (_: T) => Iterable<U>): IteratorStream<U> {
-    function* flatMapped(it: IteratorStream<T>) {
+    function* flatMapOperator(it: IteratorStream<T>) {
       for (const nested of it) {
         yield* transform(nested);
       }
     }
-    return new IteratorStreamOfIterator(flatMapped(this));
+    return new IteratorStreamOfIterator(flatMapOperator(this));
   }
 
   batch(batchSize: number): IteratorStream<T[]> {
@@ -259,7 +259,7 @@ class IteratorStreamOfIterator<T>
       throw new Error("batchSize should be positive");
     }
 
-    function* batched(it: IteratorStream<T>) {
+    function* batchOperator(it: IteratorStream<T>) {
       let acc: T[] = [];
       for (const v of it) {
         acc.push(v);
@@ -272,11 +272,11 @@ class IteratorStreamOfIterator<T>
         yield acc;
       }
     }
-    return new IteratorStreamOfIterator(batched(this));
+    return new IteratorStreamOfIterator(batchOperator(this));
   }
 
   take(maxSize: number): IteratorStream<T> {
-    function* limited(it: IteratorStream<T>) {
+    function* takeOperator(it: IteratorStream<T>) {
       let count = 0;
       if (count >= maxSize) {
         return;
@@ -289,11 +289,11 @@ class IteratorStreamOfIterator<T>
         }
       }
     }
-    return new IteratorStreamOfIterator(limited(this));
+    return new IteratorStreamOfIterator(takeOperator(this));
   }
 
   drop(n: number): IteratorStream<T> {
-    function* skipped(it: IteratorStream<T>) {
+    function* dropOperator(it: IteratorStream<T>) {
       let count = 0;
       for (const v of it) {
         if (count >= n) {
@@ -302,11 +302,11 @@ class IteratorStreamOfIterator<T>
         count += 1;
       }
     }
-    return new IteratorStreamOfIterator(skipped(this));
+    return new IteratorStreamOfIterator(dropOperator(this));
   }
 
   dropWhile(predicate: (_: T) => boolean): IteratorStream<T> {
-    function* droppedWhile(it: IteratorStream<T>) {
+    function* dropWhileOperator(it: IteratorStream<T>) {
       let dropping = true;
       for (const v of it) {
         dropping = dropping && predicate(v);
@@ -315,11 +315,11 @@ class IteratorStreamOfIterator<T>
         }
       }
     }
-    return new IteratorStreamOfIterator(droppedWhile(this));
+    return new IteratorStreamOfIterator(dropWhileOperator(this));
   }
 
   takeWhile(predicate: (_: T) => boolean): IteratorStream<T> {
-    function* takenWhile(it: IteratorStream<T>) {
+    function* takeWhileOperator(it: IteratorStream<T>) {
       for (const v of it) {
         if (!predicate(v)) {
           return;
@@ -327,17 +327,17 @@ class IteratorStreamOfIterator<T>
         yield v;
       }
     }
-    return new IteratorStreamOfIterator(takenWhile(this));
+    return new IteratorStreamOfIterator(takeWhileOperator(this));
   }
 
   peek(observer: (_: T) => void): IteratorStream<T> {
-    function* peeked(it: IteratorStream<T>) {
+    function* peekOperator(it: IteratorStream<T>) {
       for (const v of it) {
         observer(v);
         yield v;
       }
     }
-    return new IteratorStreamOfIterator(peeked(this));
+    return new IteratorStreamOfIterator(peekOperator(this));
   }
 
   forEach(block: (_: T) => unknown): void {

@@ -228,18 +228,22 @@ class AsyncIteratorStreamOfIterator<T>
   }
 
   filter(predicate: (_: T) => boolean): AsyncIteratorStream<T> {
-    async function* filtered(it: AsyncIteratorStream<T>) {
+    async function* filterOperator(it: AsyncIteratorStream<T>) {
       for await (const v of it) {
         if (predicate(v)) {
           yield v;
         }
       }
     }
-    return new AsyncIteratorStreamOfIterator(filtered(this));
+    return new AsyncIteratorStreamOfIterator(filterOperator(this));
   }
 
   map<U>(transform: (_: T) => U): AsyncIteratorStream<U> {
-    function mapped(it: AsyncIteratorStream<T>) {
+    // Do not use a generator here, as it will await the result of the
+    // transform before yielding each mapped value.
+    // The Iterator Helpers proposal requires that we yield immediately
+    // without awaiting the transform result to resolve.
+    function mapOperator(it: AsyncIteratorStream<T>) {
       function mapResult(sourceResult: Promise<IteratorResult<T>>) {
         return new Promise<IteratorResult<U>>((resolve, reject) => {
           Promise.resolve(sourceResult).then((result) => {
@@ -280,25 +284,25 @@ class AsyncIteratorStreamOfIterator<T>
 
       return mappedIterator;
     }
-    return new AsyncIteratorStreamOfIterator(mapped(this));
+    return new AsyncIteratorStreamOfIterator(mapOperator(this));
   }
 
   mapAwait<U>(transform: (_: T) => Promise<U>): AsyncIteratorStream<U> {
-    async function* mapAwaited(it: AsyncIteratorStream<T>) {
+    async function* mapAwaitOperator(it: AsyncIteratorStream<T>) {
       for await (const v of it) {
         yield transform(v);
       }
     }
-    return new AsyncIteratorStreamOfIterator(mapAwaited(this));
+    return new AsyncIteratorStreamOfIterator(mapAwaitOperator(this));
   }
 
   flatMap<U>(transform: (_: T) => AsyncIterable<U>): AsyncIteratorStream<U> {
-    async function* flatMapped(it: AsyncIteratorStream<T>) {
+    async function* flatMapOperator(it: AsyncIteratorStream<T>) {
       for await (const nested of it) {
         yield* transform(nested);
       }
     }
-    return new AsyncIteratorStreamOfIterator(flatMapped(this));
+    return new AsyncIteratorStreamOfIterator(flatMapOperator(this));
   }
 
   batch(batchSize: number): AsyncIteratorStream<T[]> {
@@ -306,7 +310,7 @@ class AsyncIteratorStreamOfIterator<T>
       throw new Error("batchSize should be positive");
     }
 
-    async function* batched(it: AsyncIteratorStream<T>) {
+    async function* batchOperator(it: AsyncIteratorStream<T>) {
       let acc: T[] = [];
       for await (const v of it) {
         acc.push(v);
@@ -319,11 +323,11 @@ class AsyncIteratorStreamOfIterator<T>
         yield acc;
       }
     }
-    return new AsyncIteratorStreamOfIterator(batched(this));
+    return new AsyncIteratorStreamOfIterator(batchOperator(this));
   }
 
   take(maxSize: number): AsyncIteratorStream<T> {
-    async function* limited(it: AsyncIteratorStream<T>) {
+    async function* takeOperator(it: AsyncIteratorStream<T>) {
       let count = 0;
       if (count >= maxSize) {
         return;
@@ -336,11 +340,11 @@ class AsyncIteratorStreamOfIterator<T>
         }
       }
     }
-    return new AsyncIteratorStreamOfIterator(limited(this));
+    return new AsyncIteratorStreamOfIterator(takeOperator(this));
   }
 
   drop(n: number): AsyncIteratorStream<T> {
-    async function* skipped(it: AsyncIteratorStream<T>) {
+    async function* dropOperator(it: AsyncIteratorStream<T>) {
       let count = 0;
       for await (const v of it) {
         if (count >= n) {
@@ -349,11 +353,11 @@ class AsyncIteratorStreamOfIterator<T>
         count += 1;
       }
     }
-    return new AsyncIteratorStreamOfIterator(skipped(this));
+    return new AsyncIteratorStreamOfIterator(dropOperator(this));
   }
 
   dropWhile(predicate: (_: T) => boolean): AsyncIteratorStream<T> {
-    async function* droppedWhile(it: AsyncIteratorStream<T>) {
+    async function* dropWhileOperator(it: AsyncIteratorStream<T>) {
       let dropping = true;
       for await (const v of it) {
         dropping = dropping && predicate(v);
@@ -362,11 +366,11 @@ class AsyncIteratorStreamOfIterator<T>
         }
       }
     }
-    return new AsyncIteratorStreamOfIterator(droppedWhile(this));
+    return new AsyncIteratorStreamOfIterator(dropWhileOperator(this));
   }
 
   takeWhile(predicate: (_: T) => boolean): AsyncIteratorStream<T> {
-    async function* takenWhile(it: AsyncIteratorStream<T>) {
+    async function* takeWhileOperator(it: AsyncIteratorStream<T>) {
       for await (const v of it) {
         if (!predicate(v)) {
           return;
@@ -374,17 +378,17 @@ class AsyncIteratorStreamOfIterator<T>
         yield v;
       }
     }
-    return new AsyncIteratorStreamOfIterator(takenWhile(this));
+    return new AsyncIteratorStreamOfIterator(takeWhileOperator(this));
   }
 
   peek(observer: (_: T) => void): AsyncIteratorStream<T> {
-    async function* peeked(it: AsyncIteratorStream<T>) {
+    async function* peekOperator(it: AsyncIteratorStream<T>) {
       for await (const v of it) {
         observer(v);
         yield v;
       }
     }
-    return new AsyncIteratorStreamOfIterator(peeked(this));
+    return new AsyncIteratorStreamOfIterator(peekOperator(this));
   }
 
   async forEach(block: (_: T) => unknown | Promise<unknown>): Promise<void> {
