@@ -71,10 +71,6 @@ export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
 
       // We are here first... send the other side our message and await
       // the other side's response.
-      // if (send.m?.done) {
-      //   // ... unless we are sending
-      //   return Promise.resolve({ done: true, value: undefined as TReturn });
-      // }
       return new Promise((resolve, reject) => {
         puts.push({ message: send, response: { resolve, reject } });
       });

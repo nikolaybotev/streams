@@ -10,14 +10,18 @@ export async function* readableChunks(
 
   const passThrough = new PassThrough();
 
-  // Pipe to a passthrough so as not to destroy the readable stream when the
-  // AsyncGenerator is interrupted before reaching the end of the stream.
+  // Pipe to a PassThrough duplex stream so as not to destroy the Readable
+  // stream when the AsyncGenerator is terminated. This allows te Readable
+  // stream to be used again after the AsyncGenerator has completed.
   readable.pipe(passThrough);
   try {
     yield* passThrough;
   } finally {
-    // Detach from the readable stream - unpipe is not called automatically
-    // when the passThrough stream is destroyed.
+    // Detach from the Readable stream to release it so it is not potentially
+    // holding up the node process. Note that unpipe is not called automatically
+    // when the PassThrough stream that is piped to it is destroyed. This is an
+    // observed behavior, which is not specified in the Node.js Streams
+    // documentation.
     readable.unpipe(passThrough);
   }
 }
