@@ -1,48 +1,27 @@
-import { Readable, Writable } from "node:stream";
-import { makeAsyncIteratorPair } from "../util/async-iterator-pair";
-import { makeAsyncGenerator2 } from "./async-generator";
+import { PassThrough, Readable } from "node:stream";
 
-export function readableChunks(
+export async function* readableChunks(
   readable: Readable,
   encoding?: BufferEncoding,
-): AsyncGenerator<Buffer> {
-  const [consumer, producer] = makeAsyncIteratorPair<Buffer>(stop, stop);
-
-  const writable = new Writable({
-    defaultEncoding: encoding,
-    write(chunk: Buffer, _encoding, callback) {
-      const put = producer.next(chunk);
-
-      // Apply back-pressure by awaiting consumption of produced items...
-      put.then(() => callback());
-    },
-  });
-
-  const errorListener = (error) => {
-    producer.throw!(error);
-  };
-
-  const endListener = () => {
-    // Allow consumers to read any buffered data
-    producer.return!();
-  };
-
-  function start() {
-    // Use pipe instead of on("data") because unpipe() releases the stream,
-    // putting the stream in paused mode.
-    // See https://nodejs.org/api/stream.html#two-reading-modes
-    readable.pipe(writable);
-    readable.on("end", endListener);
-    readable.on("close", endListener);
-    readable.on("error", errorListener);
+): AsyncGenerator<Buffer, void, undefined> {
+  if (encoding !== undefined) {
+    readable.setEncoding(encoding);
   }
 
-  function stop() {
-    readable.unpipe(writable);
-    readable.off("end", endListener);
-    readable.off("close", endListener);
-    readable.off("error", errorListener);
-  }
+  const passThrough = new PassThrough();
 
-  return makeAsyncGenerator2(start, consumer);
+  // Pipe to a PassThrough duplex stream so as not to destroy the Readable
+  // stream when the AsyncGenerator is terminated. This allows te Readable
+  // stream to be used again after the AsyncGenerator has completed.
+  readable.pipe(passThrough);
+  try {
+    yield* passThrough;
+  } finally {
+    // Detach from the Readable stream to release it so it is not potentially
+    // holding up the node process. Note that unpipe is not called automatically
+    // when the PassThrough stream that is piped to it is destroyed. This is an
+    // observed behavior, which is not specified in the Node.js Streams
+    // documentation.
+    readable.unpipe(passThrough);
+  }
 }
