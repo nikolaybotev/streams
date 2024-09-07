@@ -84,7 +84,7 @@ export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
         return next({ m: { value: value as TReturn, done: true } });
       },
       throw(error?) {
-        onThrow?.(this);
+        (onThrow ?? onReturn)?.(this);
         return next({ error });
       },
     };
