@@ -68,7 +68,7 @@ export interface IteratorStream<T> extends IterableIterator<T> {
    *
    * @param transform a function to apply to each element of this stream
    */
-  map<U>(transform: (_: T) => U): IteratorStream<U>;
+  map<U = T>(transform: (_: T) => U): IteratorStream<U>;
 
   /**
    *
@@ -236,7 +236,7 @@ class IteratorStreamOfIterator<T>
     return new IteratorStreamOfIterator(filterOperator(this));
   }
 
-  map<U>(transform: (_: T) => U): IteratorStream<U> {
+  map<U = T>(transform: (_: T) => U): IteratorStream<U> {
     function* mapOperator(it: IteratorStream<T>) {
       for (const v of it) {
         yield transform(v);

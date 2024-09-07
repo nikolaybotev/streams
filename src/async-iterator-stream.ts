@@ -66,7 +66,7 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
    *
    * @param transform a function to apply to each element of this stream
    */
-  map<U>(transform: (_: T) => U): AsyncIteratorStream<U>;
+  map<U = T>(transform: (_: T) => U): AsyncIteratorStream<U>;
 
   /**
    * Like `map` but the result from each call to `transform` is awaited
@@ -74,7 +74,7 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
    *
    * @param transform an async function to apply to each element of this stream
    */
-  mapAwait<U>(transform: (_: T) => Promise<U>): AsyncIteratorStream<U>;
+  mapAwait<U = T>(transform: (_: T) => Promise<U>): AsyncIteratorStream<U>;
 
   /**
    *
@@ -238,7 +238,7 @@ class AsyncIteratorStreamOfIterator<T>
     return new AsyncIteratorStreamOfIterator(filterOperator(this));
   }
 
-  map<U>(transform: (_: T) => U): AsyncIteratorStream<U> {
+  map<U = T>(transform: (_: T) => U): AsyncIteratorStream<U> {
     // Do not use a generator here, as it will await the result of the
     // transform before yielding each mapped value.
     // The Iterator Helpers proposal requires that we yield immediately
@@ -287,7 +287,7 @@ class AsyncIteratorStreamOfIterator<T>
     return new AsyncIteratorStreamOfIterator(mapOperator(this));
   }
 
-  mapAwait<U>(transform: (_: T) => Promise<U>): AsyncIteratorStream<U> {
+  mapAwait<U = T>(transform: (_: T) => Promise<U>): AsyncIteratorStream<U> {
     async function* mapAwaitOperator(it: AsyncIteratorStream<T>) {
       for await (const v of it) {
         yield transform(v);
