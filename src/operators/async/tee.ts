@@ -1,74 +1,55 @@
-import { makeAsyncGeneratorPair } from "../../util/async-iterator-pair";
-
 import { AsyncIteratorStreamImpl } from "../../async-iterator-stream";
 
 declare module "../../async-iterator-stream" {
   interface AsyncIteratorStream<T> {
-    tee(): Generator<AsyncIterator<T>>;
+    tee(): Generator<AsyncGenerator<T>>;
   }
   interface AsyncIteratorStreamImpl<T> {
-    tee(): Generator<AsyncIterator<T>>;
+    tee(): Generator<AsyncGenerator<T>>;
   }
 }
 
 AsyncIteratorStreamImpl.prototype.tee = function <T>(): Generator<
-  AsyncIterator<T>
+  AsyncGenerator<T>
 > {
-  const producers = [] as {
-    producer: AsyncGenerator<undefined, void, T>;
-    stopped: boolean;
-  }[];
-  let stoppedProducerCount = 0;
-  let completed = false;
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
+  const self = this;
 
-  const readLoop = async () => {
-    if (completed) {
-      return;
-    }
+  const buffers = new Set<IteratorResult<T>[]>();
 
-    try {
-      const result = await this.next();
-      if (!result.done) {
-        producers.forEach(({ producer }) => producer.next(result.value));
-      } else {
-        completed = true;
-        producers.forEach(({ producer }) => producer.return(result.value));
-      }
-    } catch (e) {
-      producers.forEach(({ producer }) => producer.throw(e));
-    }
+  function next(): IteratorResult<AsyncGenerator<T>> {
+    const buffer = [] as IteratorResult<T>[];
 
-    readLoop();
-  };
+    buffers.add(buffer);
 
-  const teeNext = (): IteratorResult<AsyncIterator<T>> => {
-    const producerIndex = producers.length;
-
-    const onConsumerReturn = async (): Promise<void> => {
-      const tee = producers[producerIndex];
-      if (!tee.stopped) {
-        tee.stopped = true;
-        stoppedProducerCount += 1;
-        if (stoppedProducerCount == producers.length) {
-          completed = true;
-          await this.return?.();
+    async function* tee() {
+      try {
+        while (true) {
+          if (buffer.length === 0) {
+            const next = await self.next();
+            buffers.forEach((buffer) => buffer.push(next));
+          }
+          const item = buffer.shift()!;
+          if (item.done) {
+            return item.value;
+          }
+          yield item.value;
+        }
+      } finally {
+        buffers.delete(buffer);
+        if (buffers.size === 0) {
+          await self.return?.();
         }
       }
-    };
+    }
 
-    const [consumer, producer] = makeAsyncGeneratorPair<T>({
-      onReturn: onConsumerReturn,
-    });
+    return { value: tee() };
+  }
 
-    producers.push({ producer, stopped: false });
-
-    return { value: consumer, done: false };
-  };
-
-  // Wrap in a generator in order to expose iterator helpers
   function* asyncIteratorTee() {
-    readLoop();
-    yield* { [Symbol.iterator]: () => ({ next: teeNext }) };
+    yield* {
+      [Symbol.iterator]: () => ({ next }),
+    };
   }
 
   return asyncIteratorTee();
