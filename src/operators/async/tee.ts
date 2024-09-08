@@ -1,8 +1,19 @@
 import { makeAsyncGeneratorPair } from "../../util/async-iterator-pair";
 
-export function makeAsyncIteratorTee<T>(
-  iterator: AsyncIterator<T>,
-): Generator<AsyncIterator<T>> {
+import { AsyncIteratorStreamImpl } from "../../async-iterator-stream";
+
+declare module "../../async-iterator-stream" {
+  interface AsyncIteratorStream<T> {
+    tee(): Generator<AsyncIterator<T>>;
+  }
+  interface AsyncIteratorStreamImpl<T> {
+    tee(): Generator<AsyncIterator<T>>;
+  }
+}
+
+AsyncIteratorStreamImpl.prototype.tee = function <T>(): Generator<
+  AsyncIterator<T>
+> {
   const producers = [] as {
     producer: AsyncGenerator<undefined, void, T>;
     stopped: boolean;
@@ -10,13 +21,13 @@ export function makeAsyncIteratorTee<T>(
   let stoppedProducerCount = 0;
   let completed = false;
 
-  async function readLoop() {
+  const readLoop = async () => {
     if (completed) {
       return;
     }
 
     try {
-      const result = await iterator.next();
+      const result = await this.next();
       if (!result.done) {
         producers.forEach(({ producer }) => producer.next(result.value));
       } else {
@@ -28,22 +39,22 @@ export function makeAsyncIteratorTee<T>(
     }
 
     readLoop();
-  }
+  };
 
-  function teeNext(): IteratorResult<AsyncIterator<T>> {
+  const teeNext = (): IteratorResult<AsyncIterator<T>> => {
     const producerIndex = producers.length;
 
-    async function onConsumerReturn(): Promise<void> {
+    const onConsumerReturn = async (): Promise<void> => {
       const tee = producers[producerIndex];
       if (!tee.stopped) {
         tee.stopped = true;
         stoppedProducerCount += 1;
         if (stoppedProducerCount == producers.length) {
           completed = true;
-          await iterator.return?.();
+          await this.return?.();
         }
       }
-    }
+    };
 
     const [consumer, producer] = makeAsyncGeneratorPair<T>({
       onReturn: onConsumerReturn,
@@ -52,7 +63,7 @@ export function makeAsyncIteratorTee<T>(
     producers.push({ producer, stopped: false });
 
     return { value: consumer, done: false };
-  }
+  };
 
   // Wrap in a generator in order to expose iterator helpers
   function* asyncIteratorTee() {
@@ -61,4 +72,4 @@ export function makeAsyncIteratorTee<T>(
   }
 
   return asyncIteratorTee();
-}
+};
