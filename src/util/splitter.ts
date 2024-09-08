@@ -18,7 +18,9 @@ export function handleChunk<T, U>(
   return [lines, remainder];
 }
 
-export const stringSplitter: Splitter<string, string> = {
-  split: (chunk: string) => chunk.split("\n"),
+export const stringSplitter = (
+  separator?: string | RegExp,
+): Splitter<string, string> => ({
+  split: (chunk: string) => chunk.split(separator ?? /\r?\n/),
   concat: (a: string, b: string) => a + b,
-};
+});

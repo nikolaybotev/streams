@@ -1,15 +1,15 @@
 import { Readable, Duplex } from "node:stream";
-import { readableLines } from "../sources/readable-lines";
+import { LinesOptions, readableLines } from "../sources/readable-lines";
 import { readableChunks } from "../sources/readable-chunks";
 
 declare module "node:stream" {
   interface Readable {
     chunks(encoding?: BufferEncoding): AsyncIterableIterator<Buffer | string>;
-    lines(encoding?: BufferEncoding): AsyncIterableIterator<string>;
+    lines(options?: LinesOptions): AsyncIterableIterator<string>;
   }
   interface Duplex {
     chunks(encoding?: BufferEncoding): AsyncIterableIterator<Buffer | string>;
-    lines(encoding?: BufferEncoding): AsyncIterableIterator<string>;
+    lines(options?: LinesOptions): AsyncIterableIterator<string>;
   }
 }
 
@@ -17,14 +17,14 @@ Readable.prototype.chunks = function (encoding?: BufferEncoding) {
   return readableChunks(this, encoding);
 };
 
-Readable.prototype.lines = function (encoding?: BufferEncoding) {
-  return readableLines(this, encoding);
+Readable.prototype.lines = function (options?: LinesOptions) {
+  return readableLines(this, options);
 };
 
 Duplex.prototype.chunks = function (encoding?: BufferEncoding) {
   return readableChunks(this, encoding);
 };
 
-Duplex.prototype.lines = function (encoding?: BufferEncoding) {
-  return readableLines(this, encoding);
+Duplex.prototype.lines = function (options?: LinesOptions) {
+  return readableLines(this, options);
 };
