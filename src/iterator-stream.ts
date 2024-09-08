@@ -120,8 +120,9 @@ export interface IteratorStream<T> extends IterableIterator<T> {
   collect<A, R = A>(
     container: A,
     accumulator: (a: A, t: T) => void,
-    finisher?: (_: A) => R,
+    finisher: (_: A) => R,
   ): R;
+  collect<A>(container: A, accumulator: (a: A, t: T) => void): A;
 
   /**
    *
@@ -139,7 +140,8 @@ export interface IteratorStream<T> extends IterableIterator<T> {
    * @param reducer
    * @param initial
    */
-  fold<R = T>(reducer: (a: R, b: T) => R, initial?: R): R | undefined;
+  fold<R = T>(reducer: (a: R, b: T) => R, initial: R): R | undefined;
+  fold(reducer: (a: T, b: T) => T): T | undefined;
 
   /**
    *
@@ -190,7 +192,7 @@ export interface IteratorStream<T> extends IterableIterator<T> {
 // IteratorStream Implementation
 //
 
-class IteratorStreamOfIterator<T>
+export class IteratorStreamImpl<T>
   implements IteratorStream<T>, IterableIterator<T>
 {
   readonly return?;
@@ -234,7 +236,7 @@ class IteratorStreamOfIterator<T>
         }
       }
     }
-    return new IteratorStreamOfIterator(filterOperator(this));
+    return new IteratorStreamImpl(filterOperator(this));
   }
 
   map<U = T>(transform: (_: T) => U): IteratorStream<U> {
@@ -243,7 +245,7 @@ class IteratorStreamOfIterator<T>
         yield transform(v);
       }
     }
-    return new IteratorStreamOfIterator(mapOperator(this));
+    return new IteratorStreamImpl(mapOperator(this));
   }
 
   flatMap<U>(transform: (_: T) => Iterable<U>): IteratorStream<U> {
@@ -252,7 +254,7 @@ class IteratorStreamOfIterator<T>
         yield* transform(nested);
       }
     }
-    return new IteratorStreamOfIterator(flatMapOperator(this));
+    return new IteratorStreamImpl(flatMapOperator(this));
   }
 
   batch(batchSize: number): IteratorStream<T[]> {
@@ -273,7 +275,7 @@ class IteratorStreamOfIterator<T>
         yield acc;
       }
     }
-    return new IteratorStreamOfIterator(batchOperator(this));
+    return new IteratorStreamImpl(batchOperator(this));
   }
 
   take(maxSize: number): IteratorStream<T> {
@@ -290,7 +292,7 @@ class IteratorStreamOfIterator<T>
         }
       }
     }
-    return new IteratorStreamOfIterator(takeOperator(this));
+    return new IteratorStreamImpl(takeOperator(this));
   }
 
   drop(n: number): IteratorStream<T> {
@@ -303,7 +305,7 @@ class IteratorStreamOfIterator<T>
         count += 1;
       }
     }
-    return new IteratorStreamOfIterator(dropOperator(this));
+    return new IteratorStreamImpl(dropOperator(this));
   }
 
   dropWhile(predicate: (_: T) => boolean): IteratorStream<T> {
@@ -316,7 +318,7 @@ class IteratorStreamOfIterator<T>
         }
       }
     }
-    return new IteratorStreamOfIterator(dropWhileOperator(this));
+    return new IteratorStreamImpl(dropWhileOperator(this));
   }
 
   takeWhile(predicate: (_: T) => boolean): IteratorStream<T> {
@@ -328,7 +330,7 @@ class IteratorStreamOfIterator<T>
         yield v;
       }
     }
-    return new IteratorStreamOfIterator(takeWhileOperator(this));
+    return new IteratorStreamImpl(takeWhileOperator(this));
   }
 
   peek(observer: (_: T) => void): IteratorStream<T> {
@@ -338,7 +340,7 @@ class IteratorStreamOfIterator<T>
         yield v;
       }
     }
-    return new IteratorStreamOfIterator(peekOperator(this));
+    return new IteratorStreamImpl(peekOperator(this));
   }
 
   forEach(block: (_: T) => unknown): void {
@@ -499,7 +501,7 @@ function iteratorStreamFrom<T>(
   it: Iterable<T> | Iterator<T>,
 ): IteratorStream<T> {
   if (typeof it[Symbol.iterator] === "function") {
-    return new IteratorStreamOfIterator(it[Symbol.iterator]());
+    return new IteratorStreamImpl(it[Symbol.iterator]());
   }
-  return new IteratorStreamOfIterator(it as Iterator<T>);
+  return new IteratorStreamImpl(it as Iterator<T>);
 }
