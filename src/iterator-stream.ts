@@ -195,8 +195,8 @@ export interface IteratorStream<T> extends IterableIterator<T> {
 export class IteratorStreamImpl<T>
   implements IteratorStream<T>, IterableIterator<T>
 {
-  readonly return?;
-  readonly throw?;
+  readonly return?: (value?: unknown) => IteratorResult<T, unknown>;
+  readonly throw?: (e?: unknown) => IteratorResult<T, unknown>;
 
   constructor(private readonly iterator: Iterator<T>) {
     this.return = this.iterator.return
