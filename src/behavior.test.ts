@@ -113,7 +113,7 @@ test("async generator without return statement has expected order of operations"
 test("async generator completes before exception is handled", async () => {
   const log = logger();
 
-  function* x(): Generator<number> {
+  async function* x(): AsyncGenerator<number> {
     try {
       log("begin");
       yield 0;
@@ -121,9 +121,9 @@ test("async generator completes before exception is handled", async () => {
       yield 1;
       log("end");
     } catch (e) {
-      log("ERROR", e);
+      log("ERROR", e); // this does not happen
     } finally {
-      log("finally");
+      log("finally"); // this happens before the catch handler of the consumer
     }
   }
 
@@ -381,4 +381,30 @@ test("async generator awaits promises before yielding", async () => {
     "second produced",
     "all done",
   ]);
+});
+
+test("async generator handles throw message", async () => {
+  const log = logger();
+
+  async function* handlesThrow() {
+    try {
+      yield 1;
+    } catch (e) {
+      log("caught", e);
+      return 42;
+    }
+
+    return 24; // not reached
+  }
+
+  const r = handlesThrow();
+
+  const n1 = await r.next();
+  const n2 = await r.throw("error");
+  const n3 = await r.next();
+
+  expect(log.output).toEqual(["caught", "error"]);
+  expect(n1).toEqual({ done: false, value: 1 });
+  expect(n2).toEqual({ done: true, value: 42 });
+  expect(n3).toEqual({ done: true, value: undefined });
 });
