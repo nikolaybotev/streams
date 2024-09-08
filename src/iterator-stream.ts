@@ -120,8 +120,9 @@ export interface IteratorStream<T> extends IterableIterator<T> {
   collect<A, R = A>(
     container: A,
     accumulator: (a: A, t: T) => void,
-    finisher?: (_: A) => R,
+    finisher: (_: A) => R,
   ): R;
+  collect<A>(container: A, accumulator: (a: A, t: T) => void): A;
 
   /**
    *
@@ -139,7 +140,8 @@ export interface IteratorStream<T> extends IterableIterator<T> {
    * @param reducer
    * @param initial
    */
-  fold<R = T>(reducer: (a: R, b: T) => R, initial?: R): R | undefined;
+  fold<R = T>(reducer: (a: R, b: T) => R, initial: R): R | undefined;
+  fold(reducer: (a: T, b: T) => T): T | undefined;
 
   /**
    *
@@ -190,7 +192,7 @@ export interface IteratorStream<T> extends IterableIterator<T> {
 // IteratorStream Implementation
 //
 
-class IteratorStreamOfIterator<T>
+export class IteratorStreamOfIterator<T>
   implements IteratorStream<T>, IterableIterator<T>
 {
   readonly return?;

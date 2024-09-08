@@ -127,8 +127,9 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
   collect<A, R = A>(
     container: A,
     accumulator: (a: A, t: T) => void,
-    finisher?: (_: A) => R,
+    finisher: (_: A) => R,
   ): Promise<R>;
+  collect<A>(container: A, accumulator: (a: A, t: T) => void): Promise<A>;
 
   /**
    *
@@ -146,7 +147,8 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
    * @param reducer
    * @param initial
    */
-  fold<R = T>(reducer: (a: R, b: T) => R, initial?: R): Promise<R | undefined>;
+  fold<R = T>(reducer: (a: R, b: T) => R, initial: R): Promise<R>;
+  fold(reducer: (a: T, b: T) => T): Promise<T | undefined>;
 
   /**
    *
@@ -197,7 +199,7 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
 // AsyncIteratorStream Implementation
 //
 
-class AsyncIteratorStreamOfIterator<T>
+export class AsyncIteratorStreamOfIterator<T>
   implements AsyncIteratorStream<T>, AsyncIterableIterator<T>
 {
   readonly return?;
@@ -399,7 +401,7 @@ class AsyncIteratorStreamOfIterator<T>
     }
   }
 
-  async collect<A, R>(
+  async collect<A, R = A>(
     container: A,
     accumulator: (a: A, t: T) => void,
     finisher?: (_: A) => R,
