@@ -15,50 +15,40 @@ AsyncIteratorStreamImpl.prototype.teeBp = function <T>(): Generator<
   // eslint-disable-next-line @typescript-eslint/no-this-alias
   const self = this;
 
-  const buffers = [] as IteratorResult<T>[][];
+  const buffers = new Set<IteratorResult<T>[]>();
 
-  async function* producer() {
-    while (true) {
-      const next = await self.next();
-      for (const buffer of buffers) {
-        buffer.push(next);
-      }
-      if (next.done) {
-        return;
-      }
-      yield;
-    }
-  }
-
-  const produce = producer();
-
-  function addConsumer(): AsyncGenerator<T> {
+  function next(): IteratorResult<AsyncGenerator<T>> {
     const buffer = [] as IteratorResult<T>[];
 
-    buffers.push(buffer);
+    buffers.add(buffer);
 
-    async function* consumer() {
-      while (true) {
-        if (buffer.length == 0) {
-          await produce.next();
-          if (buffer.length == 0) {
-            return;
+    async function* tee() {
+      try {
+        while (true) {
+          if (buffer.length === 0) {
+            const next = await self.next();
+            buffers.forEach((buffer) => buffer.push(next));
           }
+          const item = buffer.shift()!;
+          if (item.done) {
+            return item.value;
+          }
+          yield item.value;
         }
-        const item = buffer.shift()!;
-        if (item.done) {
-          return item.value;
+      } finally {
+        buffers.delete(buffer);
+        if (buffers.size === 0) {
+          await self.return?.();
         }
-        yield item.value;
       }
     }
 
-    return consumer();
+    return { value: tee() };
   }
 
   function* asyncIteratorTee() {
     yield* {
-      [Symbol.iterator]: () => ({ next: () => ({ value: addConsumer() }) }),
+      [Symbol.iterator]: () => ({ next }),
     };
   }
 

@@ -23,7 +23,7 @@ IteratorStreamImpl.prototype.tee = function <T>(): Generator<Generator<T>> {
     function* tee() {
       try {
         while (true) {
-          if (buffer.length == 0) {
+          if (buffer.length === 0) {
             const next = self.next();
             buffers.forEach((buffer) => buffer.push(next));
           }
