@@ -3,12 +3,12 @@ import { PassThrough, Readable } from "node:stream";
 export async function* readableChunks(
   readable: Readable,
   encoding?: BufferEncoding,
-): AsyncGenerator<Buffer, void, undefined> {
-  if (encoding !== undefined) {
-    readable.setEncoding(encoding);
-  }
-
+): AsyncGenerator<Buffer | string, void, undefined> {
   const passThrough = new PassThrough();
+
+  if (encoding !== undefined) {
+    passThrough.setEncoding(encoding);
+  }
 
   // Pipe to a PassThrough duplex stream so as not to destroy the Readable
   // stream when the AsyncGenerator is terminated. This allows te Readable
