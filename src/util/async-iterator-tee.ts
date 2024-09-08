@@ -54,12 +54,11 @@ export function makeAsyncIteratorTee<T>(
     return { value: consumer, done: false };
   }
 
-  readLoop();
-
   // Wrap in a generator in order to expose iterator helpers
-  function* iteratorTee() {
+  function* asyncIteratorTee() {
+    readLoop();
     yield* { [Symbol.iterator]: () => ({ next: teeNext }) };
   }
 
-  return iteratorTee();
+  return asyncIteratorTee();
 }
