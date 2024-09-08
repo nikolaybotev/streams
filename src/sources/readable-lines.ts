@@ -7,6 +7,6 @@ import { stringSplitter } from "../util/splitter";
 export function readableLines(
   readable: Readable,
   encoding: BufferEncoding = "utf-8",
-): AsyncGenerator<string> {
+): AsyncIterableIterator<string> {
   return readableChunks(readable, encoding).stream().split(stringSplitter);
 }
