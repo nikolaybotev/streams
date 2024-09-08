@@ -199,7 +199,7 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
 // AsyncIteratorStream Implementation
 //
 
-export class AsyncIteratorStreamOfIterator<T>
+export class AsyncIteratorStreamImpl<T>
   implements AsyncIteratorStream<T>, AsyncIterableIterator<T>
 {
   readonly return?;
@@ -239,7 +239,7 @@ export class AsyncIteratorStreamOfIterator<T>
         }
       }
     }
-    return new AsyncIteratorStreamOfIterator(filterOperator(this));
+    return new AsyncIteratorStreamImpl(filterOperator(this));
   }
 
   map<U = T>(transform: (_: T) => U): AsyncIteratorStream<U> {
@@ -288,7 +288,7 @@ export class AsyncIteratorStreamOfIterator<T>
 
       return mappedIterator;
     }
-    return new AsyncIteratorStreamOfIterator(mapOperator(this));
+    return new AsyncIteratorStreamImpl(mapOperator(this));
   }
 
   mapAwait<U = T>(transform: (_: T) => Promise<U>): AsyncIteratorStream<U> {
@@ -297,7 +297,7 @@ export class AsyncIteratorStreamOfIterator<T>
         yield transform(v);
       }
     }
-    return new AsyncIteratorStreamOfIterator(mapAwaitOperator(this));
+    return new AsyncIteratorStreamImpl(mapAwaitOperator(this));
   }
 
   flatMap<U>(transform: (_: T) => AsyncIterable<U>): AsyncIteratorStream<U> {
@@ -306,7 +306,7 @@ export class AsyncIteratorStreamOfIterator<T>
         yield* transform(nested);
       }
     }
-    return new AsyncIteratorStreamOfIterator(flatMapOperator(this));
+    return new AsyncIteratorStreamImpl(flatMapOperator(this));
   }
 
   batch(batchSize: number): AsyncIteratorStream<T[]> {
@@ -327,7 +327,7 @@ export class AsyncIteratorStreamOfIterator<T>
         yield acc;
       }
     }
-    return new AsyncIteratorStreamOfIterator(batchOperator(this));
+    return new AsyncIteratorStreamImpl(batchOperator(this));
   }
 
   take(maxSize: number): AsyncIteratorStream<T> {
@@ -344,7 +344,7 @@ export class AsyncIteratorStreamOfIterator<T>
         }
       }
     }
-    return new AsyncIteratorStreamOfIterator(takeOperator(this));
+    return new AsyncIteratorStreamImpl(takeOperator(this));
   }
 
   drop(n: number): AsyncIteratorStream<T> {
@@ -357,7 +357,7 @@ export class AsyncIteratorStreamOfIterator<T>
         count += 1;
       }
     }
-    return new AsyncIteratorStreamOfIterator(dropOperator(this));
+    return new AsyncIteratorStreamImpl(dropOperator(this));
   }
 
   dropWhile(predicate: (_: T) => boolean): AsyncIteratorStream<T> {
@@ -370,7 +370,7 @@ export class AsyncIteratorStreamOfIterator<T>
         }
       }
     }
-    return new AsyncIteratorStreamOfIterator(dropWhileOperator(this));
+    return new AsyncIteratorStreamImpl(dropWhileOperator(this));
   }
 
   takeWhile(predicate: (_: T) => boolean): AsyncIteratorStream<T> {
@@ -382,7 +382,7 @@ export class AsyncIteratorStreamOfIterator<T>
         yield v;
       }
     }
-    return new AsyncIteratorStreamOfIterator(takeWhileOperator(this));
+    return new AsyncIteratorStreamImpl(takeWhileOperator(this));
   }
 
   peek(observer: (_: T) => void): AsyncIteratorStream<T> {
@@ -392,7 +392,7 @@ export class AsyncIteratorStreamOfIterator<T>
         yield v;
       }
     }
-    return new AsyncIteratorStreamOfIterator(peekOperator(this));
+    return new AsyncIteratorStreamImpl(peekOperator(this));
   }
 
   async forEach(block: (_: T) => unknown | Promise<unknown>): Promise<void> {
@@ -560,10 +560,10 @@ function asyncIteratorStreamFrom<T>(
   it: Iterable<T> | AsyncIterable<T> | AsyncIterator<T>,
 ): AsyncIteratorStream<T> {
   if (typeof it[Symbol.asyncIterator] === "function") {
-    return new AsyncIteratorStreamOfIterator(it[Symbol.asyncIterator]());
+    return new AsyncIteratorStreamImpl(it[Symbol.asyncIterator]());
   }
   if (typeof it[Symbol.iterator] === "function") {
-    return new AsyncIteratorStreamOfIterator(toAsync(it[Symbol.iterator]()));
+    return new AsyncIteratorStreamImpl(toAsync(it[Symbol.iterator]()));
   }
-  return new AsyncIteratorStreamOfIterator(it as AsyncIterator<T>);
+  return new AsyncIteratorStreamImpl(it as AsyncIterator<T>);
 }
