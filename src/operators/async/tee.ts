@@ -1,4 +1,4 @@
-import { makeAsyncGeneratorPair } from "./async-iterator-pair";
+import { makeAsyncGeneratorPair } from "../../util/async-iterator-pair";
 
 export function makeAsyncIteratorTee<T>(
   iterator: AsyncIterator<T>,
