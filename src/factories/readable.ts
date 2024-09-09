@@ -1,4 +1,4 @@
-import { Readable, Duplex } from "node:stream";
+import { Readable } from "node:stream";
 import { LinesOptions, readableLines } from "../sources/readable-lines";
 import { readableChunks } from "../sources/readable-chunks";
 
@@ -18,13 +18,5 @@ Readable.prototype.chunks = function (encoding?: BufferEncoding) {
 };
 
 Readable.prototype.lines = function (options?: LinesOptions) {
-  return readableLines(this, options);
-};
-
-Duplex.prototype.chunks = function (encoding?: BufferEncoding) {
-  return readableChunks(this, encoding);
-};
-
-Duplex.prototype.lines = function (options?: LinesOptions) {
   return readableLines(this, options);
 };
