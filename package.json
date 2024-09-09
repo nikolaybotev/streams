@@ -6,7 +6,8 @@
   "files": [
     "**/*.js",
     "**/*.d.ts",
-    "!demos/**"
+    "!demos/**",
+    "!test/**"
   ],
   "scripts": {
     "build": "run-s format:check eslint clean tsc",
