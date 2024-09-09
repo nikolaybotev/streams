@@ -202,29 +202,25 @@ export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
 export class AsyncIteratorStreamImpl<T>
   implements AsyncIteratorStream<T>, AsyncIterableIterator<T>
 {
-  readonly return?;
-  readonly throw?;
+  // The AsyncIterator protocol
+  readonly next: (
+    ...args: [] | [undefined]
+  ) => Promise<IteratorResult<T, unknown>>;
+  readonly return?: (value?: unknown) => Promise<IteratorResult<T, unknown>>;
+  readonly throw?: (e?: unknown) => Promise<IteratorResult<T, unknown>>;
 
   constructor(private readonly iterator: AsyncIterator<T>) {
-    this.return = this.iterator.return
-      ? (value?: unknown) => {
-          return this.iterator.return!(value);
-        }
-      : undefined;
-    this.throw = this.iterator.throw
-      ? (e?: unknown) => {
-          return this.iterator.throw!(e);
-        }
-      : undefined;
+    this.next = (...args) => this.iterator.next(...args);
+    if (this.iterator.return !== undefined) {
+      this.return = (value) => this.iterator.return!(value);
+    }
+    if (this.iterator.throw !== undefined) {
+      this.throw = (e) => this.iterator.throw!(e);
+    }
   }
 
   stream() {
     return this;
-  }
-
-  // The AsyncIterator protocol
-  next(...args: [] | [undefined]) {
-    return this.iterator.next(...args);
   }
 
   [Symbol.asyncIterator]() {
