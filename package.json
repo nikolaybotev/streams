@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A lazy streams library for functional composition in JavaScript.",
   "main": "index.js",
+  "type": "commonjs",
   "files": [
     "**/*.js",
     "**/*.d.ts",
