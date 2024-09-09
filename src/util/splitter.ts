@@ -3,7 +3,7 @@ export interface Splitter<T, U> {
   concat(a: U, b: U): U;
 }
 
-export function handleChunk<T, U>(
+export function splitChunk<T, U>(
   splitter: Splitter<T, U>,
   chunk: T,
   previous: U | undefined,
