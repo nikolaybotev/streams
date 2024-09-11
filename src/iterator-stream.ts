@@ -33,9 +33,7 @@ import { asIterable } from "./util/as-iterable";
  *   .forEach(console.log);  // use the IteratorStream APIs
  * ```
  */
-export class IteratorStream<T, TReturn = unknown>
-  implements Iterator<T, TReturn, unknown>
-{
+export class IteratorStream<T> implements Iterator<T, undefined, unknown> {
   /**
    * Creates an IteratorStream from a Iterator or Iterable.
    *
@@ -43,28 +41,28 @@ export class IteratorStream<T, TReturn = unknown>
    * IteratorStream.from([1, 2, 3]).map(x => x * 2).forEach(console.log);
    * ```
    */
-  static from<T, TReturn = unknown>(
-    it: Iterable<T> | Iterator<T, TReturn, unknown>,
-  ): IteratorStream<T, TReturn> {
+  static from<T>(
+    it: Iterable<T> | Iterator<T, unknown, undefined>,
+  ): IteratorStream<T> {
     if (typeof it[Symbol.iterator] === "function") {
       return new IteratorStream(it[Symbol.iterator]());
     }
-    return new IteratorStream(it as Iterator<T, TReturn, unknown>);
+    return new IteratorStream(it as Iterator<T, unknown, undefined>);
   }
 
-  readonly next: (...args: [] | [unknown]) => IteratorResult<T, TReturn>;
-  readonly return?: (value?: TReturn) => IteratorResult<T, TReturn>;
-  readonly throw?: (e?: unknown) => IteratorResult<T, TReturn>;
+  readonly next: () => IteratorResult<T, undefined>;
+  readonly return?: () => IteratorResult<T, undefined>;
+  readonly throw?: (e?: unknown) => IteratorResult<T, undefined>;
 
-  constructor(private readonly iterator: Iterator<T>) {
-    // The next argument of is NOT forward to iterator
-    this.next = (_next?: unknown) => this.iterator.next();
+  constructor(private readonly iterator: Iterator<T, unknown, undefined>) {
+    this.next = () => this.iterator.next() as IteratorResult<T, undefined>;
     if (this.iterator.return !== undefined) {
-      // The value returned from iterator IS forwarded to the caller
-      this.return = (value) => this.iterator.return!(value);
+      this.return = () =>
+        this.iterator.return!() as IteratorResult<T, undefined>;
     }
     if (this.iterator.throw !== undefined) {
-      this.throw = (e) => this.iterator.throw!(e);
+      this.throw = (e) =>
+        this.iterator.throw!(e) as IteratorResult<T, undefined>;
     }
   }
 
@@ -74,6 +72,10 @@ export class IteratorStream<T, TReturn = unknown>
 
   [Symbol.iterator]() {
     return this;
+  }
+
+  [Symbol.dispose]() {
+    this.return?.();
   }
 
   // #region Intermediate operations
@@ -87,7 +89,7 @@ export class IteratorStream<T, TReturn = unknown>
    * @param predicate a function that decides whether to include each element
    * in the new stream (true) or to exclude the element (false)
    */
-  filter(predicate: (_: T) => boolean): IteratorStream<T, undefined> {
+  filter(predicate: (_: T) => boolean): IteratorStream<T> {
     function* filterOperator(it: Iterable<T>) {
       for (const v of it) {
         if (predicate(v)) {
@@ -106,7 +108,7 @@ export class IteratorStream<T, TReturn = unknown>
    *
    * @param transform a function to apply to each element of this stream
    */
-  map<U = T>(transform: (_: T) => U): IteratorStream<U, undefined> {
+  map<U = T>(transform: (_: T) => U): IteratorStream<U> {
     function* mapOperator(it: Iterable<T>) {
       for (const v of it) {
         yield transform(v);
@@ -123,7 +125,7 @@ export class IteratorStream<T, TReturn = unknown>
    */
   flatMap<U>(
     transform: (_: T) => Iterable<U> | Iterator<U, unknown, undefined>,
-  ): IteratorStream<U, undefined> {
+  ): IteratorStream<U> {
     function* flatMapOperator(it: Iterable<T>) {
       for (const nested of it) {
         yield* asIterable(transform(nested));
@@ -132,7 +134,7 @@ export class IteratorStream<T, TReturn = unknown>
     return new IteratorStream(flatMapOperator(this));
   }
 
-  batch(batchSize: number): IteratorStream<T[], undefined> {
+  batch(batchSize: number): IteratorStream<T[]> {
     if (batchSize < 1) {
       throw new Error("batchSize should be positive");
     }
@@ -161,7 +163,7 @@ export class IteratorStream<T, TReturn = unknown>
    *
    * @param limit the maximum number of items to produce
    */
-  take(limit: number): IteratorStream<T, undefined> {
+  take(limit: number): IteratorStream<T> {
     function* takeOperator(it: Iterable<T>) {
       let count = 0;
       if (count >= limit) {
@@ -184,7 +186,7 @@ export class IteratorStream<T, TReturn = unknown>
    *
    * @param n
    */
-  drop(n: number): IteratorStream<T, undefined> {
+  drop(n: number): IteratorStream<T> {
     function* dropOperator(it: Iterable<T>) {
       let count = 0;
       for (const v of it) {
@@ -197,7 +199,7 @@ export class IteratorStream<T, TReturn = unknown>
     return new IteratorStream(dropOperator(this));
   }
 
-  dropWhile(predicate: (_: T) => boolean): IteratorStream<T, undefined> {
+  dropWhile(predicate: (_: T) => boolean): IteratorStream<T> {
     function* dropWhileOperator(it: Iterable<T>) {
       let dropping = true;
       for (const v of it) {
@@ -210,7 +212,7 @@ export class IteratorStream<T, TReturn = unknown>
     return new IteratorStream(dropWhileOperator(this));
   }
 
-  takeWhile(predicate: (_: T) => boolean): IteratorStream<T, undefined> {
+  takeWhile(predicate: (_: T) => boolean): IteratorStream<T> {
     function* takeWhileOperator(it: Iterable<T>) {
       for (const v of it) {
         if (!predicate(v)) {
@@ -222,7 +224,7 @@ export class IteratorStream<T, TReturn = unknown>
     return new IteratorStream(takeWhileOperator(this));
   }
 
-  peek(observer: (_: T) => void): IteratorStream<T, undefined> {
+  peek(observer: (_: T) => void): IteratorStream<T> {
     function* peekOperator(it: Iterable<T>) {
       for (const v of it) {
         observer(v);

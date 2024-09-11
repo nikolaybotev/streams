@@ -5,13 +5,13 @@ declare module "../../iterator-stream" {
   interface IteratorStream<T> {
     traverseDepth(
       getChildren: (_: T) => Iterable<T> | Iterator<T, unknown, undefined>,
-    ): IteratorStream<T, undefined>;
+    ): IteratorStream<T>;
   }
 }
 
 IteratorStream.prototype.traverseDepth = function <T>(
   getChildren: (_: T) => Iterable<T> | Iterator<T, unknown, undefined>,
-): IteratorStream<T, undefined> {
+): IteratorStream<T> {
   function* traverseDepthOperator(it: Iterable<T>) {
     for (const node of it) {
       yield node;

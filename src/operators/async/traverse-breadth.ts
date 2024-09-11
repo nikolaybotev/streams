@@ -7,7 +7,7 @@ declare module "../../async-iterator-stream" {
       getChildren: (
         _: T,
       ) => AsyncIterable<T> | AsyncIterator<T, unknown, undefined>,
-    ): AsyncIteratorStream<T, undefined>;
+    ): AsyncIteratorStream<T>;
   }
 }
 
@@ -15,7 +15,7 @@ AsyncIteratorStream.prototype.traverseBreadth = function <T>(
   getChildren: (
     _: T,
   ) => AsyncIterable<T> | AsyncIterator<T, unknown, undefined>,
-): AsyncIteratorStream<T, undefined> {
+): AsyncIteratorStream<T> {
   async function* traverseBreadthOperator(it: AsyncIterable<T>) {
     const queue = [it] as AsyncIterable<T>[];
     let item: AsyncIterable<T> | undefined;

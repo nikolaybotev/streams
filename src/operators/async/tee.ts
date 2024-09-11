@@ -1,21 +1,21 @@
 import { AsyncIteratorStream } from "../../async-iterator-stream";
 
 declare module "../../async-iterator-stream" {
-  interface AsyncIteratorStream<T, TReturn> {
-    tee(): Generator<AsyncIteratorStream<T, TReturn>>;
+  interface AsyncIteratorStream<T> {
+    tee(): Generator<AsyncIteratorStream<T>>;
   }
 }
 
-AsyncIteratorStream.prototype.tee = function <T, TReturn>(): Generator<
-  AsyncIteratorStream<T, TReturn>
+AsyncIteratorStream.prototype.tee = function <T>(): Generator<
+  AsyncIteratorStream<T>
 > {
   // eslint-disable-next-line @typescript-eslint/no-this-alias
   const self = this;
 
-  const buffers = new Set<IteratorResult<T, TReturn>[]>();
+  const buffers = new Set<IteratorResult<T, undefined>[]>();
 
   function next() {
-    const buffer = [] as IteratorResult<T, TReturn>[];
+    const buffer = [] as IteratorResult<T, undefined>[];
 
     buffers.add(buffer);
 
@@ -40,7 +40,7 @@ AsyncIteratorStream.prototype.tee = function <T, TReturn>(): Generator<
       }
     }
 
-    return { value: new AsyncIteratorStream<T, TReturn>(tee()) };
+    return { value: new AsyncIteratorStream<T>(tee()) };
   }
 
   function* asyncIteratorTee() {

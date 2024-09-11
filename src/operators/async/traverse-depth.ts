@@ -7,7 +7,7 @@ declare module "../../async-iterator-stream" {
       getChildren: (
         _: T,
       ) => AsyncIterable<T> | AsyncIterator<T, unknown, undefined>,
-    ): AsyncIteratorStream<T, undefined>;
+    ): AsyncIteratorStream<T>;
   }
 }
 
@@ -15,7 +15,7 @@ AsyncIteratorStream.prototype.traverseDepth = function <T>(
   getChildren: (
     _: T,
   ) => AsyncIterable<T> | AsyncIterator<T, unknown, undefined>,
-): AsyncIteratorStream<T, undefined> {
+): AsyncIteratorStream<T> {
   async function* traverseDepthOperator(it: AsyncIterable<T>) {
     for await (const node of it) {
       yield node;
