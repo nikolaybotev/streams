@@ -1,3 +1,4 @@
+// TypeScript Version: >=5.6.2
 import { AsyncIteratorStream } from "../async-iterator-stream";
 import { IteratorStream } from "../iterator-stream";
 
