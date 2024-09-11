@@ -1,15 +1,12 @@
-import { IteratorStream, IteratorStreamImpl } from "../../iterator-stream";
+import { IteratorStream } from "../../iterator-stream";
 
 declare module "../../iterator-stream" {
   interface IteratorStream<T> {
     traverseDepth(getChildren: (_: T) => Iterable<T>): IteratorStream<T>;
   }
-  interface IteratorStreamImpl<T> {
-    traverseDepth(getChildren: (_: T) => Iterable<T>): IteratorStream<T>;
-  }
 }
 
-IteratorStreamImpl.prototype.traverseDepth = function <T>(
+IteratorStream.prototype.traverseDepth = function <T>(
   getChildren: (_: T) => Iterable<T>,
 ): IteratorStream<T> {
   function* traverseDepthOperator(it: Iterable<T>) {
@@ -18,5 +15,5 @@ IteratorStreamImpl.prototype.traverseDepth = function <T>(
       yield* traverseDepthOperator(getChildren(node));
     }
   }
-  return new IteratorStreamImpl(traverseDepthOperator(this));
+  return new IteratorStream(traverseDepthOperator(this));
 };

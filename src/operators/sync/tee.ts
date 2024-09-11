@@ -1,17 +1,12 @@
-import { IteratorStream, IteratorStreamImpl } from "../../iterator-stream";
+import { IteratorStream } from "../../iterator-stream";
 
 declare module "../../iterator-stream" {
   interface IteratorStream<T> {
     tee(): Generator<IteratorStream<T>>;
   }
-  interface IteratorStreamImpl<T> {
-    tee(): Generator<IteratorStream<T>>;
-  }
 }
 
-IteratorStreamImpl.prototype.tee = function <T>(): Generator<
-  IteratorStream<T>
-> {
+IteratorStream.prototype.tee = function <T>(): Generator<IteratorStream<T>> {
   // eslint-disable-next-line @typescript-eslint/no-this-alias
   const self = this;
 
@@ -43,7 +38,7 @@ IteratorStreamImpl.prototype.tee = function <T>(): Generator<
       }
     }
 
-    return { value: new IteratorStreamImpl(tee()) };
+    return { value: new IteratorStream(tee()) };
   }
 
   function* iteratorTee() {

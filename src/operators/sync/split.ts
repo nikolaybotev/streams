@@ -1,16 +1,13 @@
-import { IteratorStream, IteratorStreamImpl } from "../../iterator-stream";
+import { IteratorStream } from "../../iterator-stream";
 import { splitChunk, Splitter } from "../../util/splitter";
 
 declare module "../../iterator-stream" {
   interface IteratorStream<T> {
     split<U>(by: Splitter<T, U>): IteratorStream<U>;
   }
-  interface IteratorStreamImpl<T> {
-    split<U>(by: Splitter<T, U>): IteratorStream<U>;
-  }
 }
 
-IteratorStreamImpl.prototype.split = function <T, U>(
+IteratorStream.prototype.split = function <T, U>(
   by: Splitter<T, U>,
 ): IteratorStream<U> {
   function* splitOperator(it: IteratorStream<T>) {
@@ -25,5 +22,5 @@ IteratorStreamImpl.prototype.split = function <T, U>(
       yield remainder;
     }
   }
-  return new IteratorStreamImpl(splitOperator(this));
+  return new IteratorStream(splitOperator(this));
 };

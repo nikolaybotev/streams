@@ -2,17 +2,6 @@ import { AsyncIteratorStream } from "./async-iterator-stream";
 import { toAsync } from "./sources/iterator";
 
 /**
- * An object containing factory methods for IteratorStream.
- *
- * ```
- * IteratorStream.from([1, 2, 3]).map(x => x * 2).forEach(console.log);
- * ```
- */
-export const IteratorStream = {
-  from: iteratorStreamFrom,
-};
-
-/**
  * An asynchronous stream that produces elements of type `T` on demand.
  *
  * This is an extension of the built-in `AsyncIterable<T>` protocol.
@@ -45,156 +34,21 @@ export const IteratorStream = {
  *   .forEach(console.log);  // use the IteratorStream APIs
  * ```
  */
-export interface IteratorStream<T> extends IterableIterator<T> {
-  //
-  // Intermediate operations
-  //
-
+export class IteratorStream<T> implements IterableIterator<T> {
   /**
-   * Returns a new stream that skips elements of this stream not matched by the
-   * `predicate`.
+   * Creates an IteratorStream from a Iterator or Iterable.
    *
-   * See also [IteratorHelpers#filter](https://github.com/tc39/proposal-iterator-helpers#filterfiltererfn).
-   *
-   * @param predicate a function that decides whether to include each element
-   * in the new stream (true) or to exclude the element (false)
+   * ```
+   * IteratorStream.from([1, 2, 3]).map(x => x * 2).forEach(console.log);
+   * ```
    */
-  filter(predicate: (_: T) => boolean): IteratorStream<T>;
+  static from<T>(it: Iterable<T> | Iterator<T>): IteratorStream<T> {
+    if (typeof it[Symbol.iterator] === "function") {
+      return new IteratorStream(it[Symbol.iterator]());
+    }
+    return new IteratorStream(it as Iterator<T>);
+  }
 
-  /**
-   * Returns a new stream that transforms each element of this stream
-   * using the provided function.
-   *
-   * See also [IteratorHelpers#map](https://github.com/tc39/proposal-iterator-helpers#mapmapperfn).
-   *
-   * @param transform a function to apply to each element of this stream
-   */
-  map<U = T>(transform: (_: T) => U): IteratorStream<U>;
-
-  /**
-   *
-   * See also [IteratorHelpers#flatMap](https://github.com/tc39/proposal-iterator-helpers#flatmapmapperfn).
-   *
-   * @param transform
-   */
-  flatMap<U>(transform: (_: T) => Iterable<U>): IteratorStream<U>;
-
-  batch(batchSize: number): IteratorStream<T[]>;
-
-  /**
-   * Returns a new stream that produces up to the first `limit` number of
-   * elements of this stream.
-   *
-   * See also [IteratorHelpers#take](https://github.com/tc39/proposal-iterator-helpers#takelimit).
-   *
-   * @param limit the maximum number of items to produce
-   */
-  take(limit: number): IteratorStream<T>;
-
-  /**
-   *
-   * See also [IteratorHelpers#drop](https://github.com/tc39/proposal-iterator-helpers#droplimit).
-   *
-   * @param n
-   */
-  drop(n: number): IteratorStream<T>;
-
-  dropWhile(predicate: (_: T) => boolean): IteratorStream<T>;
-
-  takeWhile(predicate: (_: T) => boolean): IteratorStream<T>;
-
-  peek(observer: (_: T) => void): IteratorStream<T>;
-
-  //
-  // Terminal operations
-  //
-
-  /**
-   *
-   * See also [IteratorHelpers#forEach](https://github.com/tc39/proposal-iterator-helpers#foreachfn).
-   *
-   * @param block
-   */
-  forEach(block: (_: T) => unknown): void;
-
-  collect<A, R = A>(
-    container: A,
-    accumulator: (a: A, t: T) => void,
-    finisher: (_: A) => R,
-  ): R;
-  collect<A>(container: A, accumulator: (a: A, t: T) => void): A;
-
-  /**
-   *
-   * See also [IteratorHelpers#reduce](https://github.com/tc39/proposal-iterator-helpers#reducereducer--initialvalue-).
-   *
-   * @param reducer
-   * @param initial
-   */
-  reduce<R = T>(reducer: (a: R, b: T) => R, initial?: R): R;
-
-  /**
-   * Like {@link reduce()} but returns `undefined` if this stream is empty
-   * instead of throwing `TypeError`.
-   *
-   * @param reducer
-   * @param initial
-   */
-  fold<R = T>(reducer: (a: R, b: T) => R, initial: R): R | undefined;
-  fold(reducer: (a: T, b: T) => T): T | undefined;
-
-  /**
-   *
-   * See also [IteratorHelpers#every](https://github.com/tc39/proposal-iterator-helpers#everyfn).
-   *
-   * @param predicate
-   */
-  every(predicate: (_: T) => boolean): boolean;
-
-  /**
-   * See also [IteratorHelpers#some](https://github.com/tc39/proposal-iterator-helpers#somefn).
-   *
-   * @param predicate
-   */
-  some(predicate: (_: T) => boolean): boolean;
-
-  none(predicate: (_: T) => boolean): boolean;
-
-  count(): number;
-
-  /**
-   * Returns the first element that matches the predicate.
-   *
-   * This is the same as the {@link first()} method except that the predicate is
-   * required and a `TypeError` will be thrown if a predicate is not supplied.
-   *
-   * See also [IteratorHelpers#find](https://github.com/tc39/proposal-iterator-helpers#findfn).
-   *
-   * @param predicate
-   */
-  find(predicate: (_: T) => boolean): T | undefined;
-
-  first(predicate?: (_: T) => boolean): T | undefined;
-
-  last(predicate?: (_: T) => boolean): T | undefined;
-
-  max(comparator: (a: T, b: T) => number): T | undefined;
-
-  min(comparator: (a: T, b: T) => number): T | undefined;
-
-  /**
-   * See also [IteratorHelpers#toArray](https://github.com/tc39/proposal-iterator-helpers#toarray).
-   */
-  toArray(): T[];
-}
-
-//
-// IteratorStream Implementation
-//
-
-export class IteratorStreamImpl<T>
-  implements IteratorStream<T>, IterableIterator<T>
-{
   readonly next: (...args: [] | [undefined]) => IteratorResult<T, unknown>;
   readonly return?: (value?: unknown) => IteratorResult<T, unknown>;
   readonly throw?: (e?: unknown) => IteratorResult<T, unknown>;
@@ -221,6 +75,19 @@ export class IteratorStreamImpl<T>
     return this;
   }
 
+  //
+  // Intermediate operations
+  //
+
+  /**
+   * Returns a new stream that skips elements of this stream not matched by the
+   * `predicate`.
+   *
+   * See also [IteratorHelpers#filter](https://github.com/tc39/proposal-iterator-helpers#filterfiltererfn).
+   *
+   * @param predicate a function that decides whether to include each element
+   * in the new stream (true) or to exclude the element (false)
+   */
   filter(predicate: (_: T) => boolean): IteratorStream<T> {
     function* filterOperator(it: IteratorStream<T>) {
       for (const v of it) {
@@ -229,25 +96,39 @@ export class IteratorStreamImpl<T>
         }
       }
     }
-    return new IteratorStreamImpl(filterOperator(this));
+    return new IteratorStream(filterOperator(this));
   }
 
+  /**
+   * Returns a new stream that transforms each element of this stream
+   * using the provided function.
+   *
+   * See also [IteratorHelpers#map](https://github.com/tc39/proposal-iterator-helpers#mapmapperfn).
+   *
+   * @param transform a function to apply to each element of this stream
+   */
   map<U = T>(transform: (_: T) => U): IteratorStream<U> {
     function* mapOperator(it: IteratorStream<T>) {
       for (const v of it) {
         yield transform(v);
       }
     }
-    return new IteratorStreamImpl(mapOperator(this));
+    return new IteratorStream(mapOperator(this));
   }
 
+  /**
+   *
+   * See also [IteratorHelpers#flatMap](https://github.com/tc39/proposal-iterator-helpers#flatmapmapperfn).
+   *
+   * @param transform
+   */
   flatMap<U>(transform: (_: T) => Iterable<U>): IteratorStream<U> {
     function* flatMapOperator(it: IteratorStream<T>) {
       for (const nested of it) {
         yield* transform(nested);
       }
     }
-    return new IteratorStreamImpl(flatMapOperator(this));
+    return new IteratorStream(flatMapOperator(this));
   }
 
   batch(batchSize: number): IteratorStream<T[]> {
@@ -268,26 +149,40 @@ export class IteratorStreamImpl<T>
         yield acc;
       }
     }
-    return new IteratorStreamImpl(batchOperator(this));
+    return new IteratorStream(batchOperator(this));
   }
 
-  take(maxSize: number): IteratorStream<T> {
+  /**
+   * Returns a new stream that produces up to the first `limit` number of
+   * elements of this stream.
+   *
+   * See also [IteratorHelpers#take](https://github.com/tc39/proposal-iterator-helpers#takelimit).
+   *
+   * @param limit the maximum number of items to produce
+   */
+  take(limit: number): IteratorStream<T> {
     function* takeOperator(it: IteratorStream<T>) {
       let count = 0;
-      if (count >= maxSize) {
+      if (count >= limit) {
         return;
       }
       for (const v of it) {
         yield v;
         count += 1;
-        if (count >= maxSize) {
+        if (count >= limit) {
           return;
         }
       }
     }
-    return new IteratorStreamImpl(takeOperator(this));
+    return new IteratorStream(takeOperator(this));
   }
 
+  /**
+   *
+   * See also [IteratorHelpers#drop](https://github.com/tc39/proposal-iterator-helpers#droplimit).
+   *
+   * @param n
+   */
   drop(n: number): IteratorStream<T> {
     function* dropOperator(it: IteratorStream<T>) {
       let count = 0;
@@ -298,7 +193,7 @@ export class IteratorStreamImpl<T>
         count += 1;
       }
     }
-    return new IteratorStreamImpl(dropOperator(this));
+    return new IteratorStream(dropOperator(this));
   }
 
   dropWhile(predicate: (_: T) => boolean): IteratorStream<T> {
@@ -311,7 +206,7 @@ export class IteratorStreamImpl<T>
         }
       }
     }
-    return new IteratorStreamImpl(dropWhileOperator(this));
+    return new IteratorStream(dropWhileOperator(this));
   }
 
   takeWhile(predicate: (_: T) => boolean): IteratorStream<T> {
@@ -323,7 +218,7 @@ export class IteratorStreamImpl<T>
         yield v;
       }
     }
-    return new IteratorStreamImpl(takeWhileOperator(this));
+    return new IteratorStream(takeWhileOperator(this));
   }
 
   peek(observer: (_: T) => void): IteratorStream<T> {
@@ -333,14 +228,31 @@ export class IteratorStreamImpl<T>
         yield v;
       }
     }
-    return new IteratorStreamImpl(peekOperator(this));
+    return new IteratorStream(peekOperator(this));
   }
 
+  //
+  // Terminal operations
+  //
+
+  /**
+   *
+   * See also [IteratorHelpers#forEach](https://github.com/tc39/proposal-iterator-helpers#foreachfn).
+   *
+   * @param block
+   */
   forEach(block: (_: T) => unknown): void {
     for (const v of this) {
       block(v);
     }
   }
+
+  collect<A, R = A>(
+    container: A,
+    accumulator: (a: A, t: T) => void,
+    finisher: (_: A) => R,
+  ): R;
+  collect<A>(container: A, accumulator: (a: A, t: T) => void): A;
 
   collect<A, R = A>(
     container: A,
@@ -353,6 +265,12 @@ export class IteratorStreamImpl<T>
     return finisher ? finisher(container) : (container as unknown as R);
   }
 
+  /**
+   *
+   * See also [IteratorHelpers#every](https://github.com/tc39/proposal-iterator-helpers#everyfn).
+   *
+   * @param predicate
+   */
   every(predicate: (_: T) => boolean): boolean {
     for (const v of this) {
       if (!predicate(v)) {
@@ -362,6 +280,11 @@ export class IteratorStreamImpl<T>
     return true;
   }
 
+  /**
+   * See also [IteratorHelpers#some](https://github.com/tc39/proposal-iterator-helpers#somefn).
+   *
+   * @param predicate
+   */
   some(predicate: (_: T) => boolean): boolean {
     for (const v of this) {
       if (predicate(v)) {
@@ -388,6 +311,16 @@ export class IteratorStreamImpl<T>
     return count;
   }
 
+  /**
+   * Returns the first element that matches the predicate.
+   *
+   * This is the same as the {@link first()} method except that the predicate is
+   * required and a `TypeError` will be thrown if a predicate is not supplied.
+   *
+   * See also [IteratorHelpers#find](https://github.com/tc39/proposal-iterator-helpers#findfn).
+   *
+   * @param predicate
+   */
   find(predicate: (_: T) => boolean): T | undefined {
     for (const v of this) {
       if (predicate(v)) {
@@ -444,6 +377,13 @@ export class IteratorStreamImpl<T>
     return result;
   }
 
+  /**
+   *
+   * See also [IteratorHelpers#reduce](https://github.com/tc39/proposal-iterator-helpers#reducereducer--initialvalue-).
+   *
+   * @param reducer
+   * @param initial
+   */
   reduce<R = T>(reducer: (a: R, b: T) => R, initial?: R): R {
     const hasInitial = arguments.length >= 2;
     let firstItem = !hasInitial;
@@ -462,6 +402,16 @@ export class IteratorStreamImpl<T>
     return result!;
   }
 
+  /**
+   * Like {@link reduce()} but returns `undefined` if this stream is empty
+   * instead of throwing `TypeError`.
+   *
+   * @param reducer
+   * @param initial
+   */
+  fold<R = T>(reducer: (a: R, b: T) => R, initial: R): R | undefined;
+  fold(reducer: (a: T, b: T) => T): T | undefined;
+
   fold<R = T>(reducer: (a: R, b: T) => R, initial?: R): R | undefined {
     const hasInitial = arguments.length >= 2;
     let firstItem = !hasInitial;
@@ -477,6 +427,9 @@ export class IteratorStreamImpl<T>
     return result;
   }
 
+  /**
+   * See also [IteratorHelpers#toArray](https://github.com/tc39/proposal-iterator-helpers#toarray).
+   */
   toArray(): T[] {
     const result = [] as T[];
     for (const v of this) {
@@ -484,17 +437,4 @@ export class IteratorStreamImpl<T>
     }
     return result;
   }
-}
-
-//
-// IteratorStream Factory
-//
-
-function iteratorStreamFrom<T>(
-  it: Iterable<T> | Iterator<T>,
-): IteratorStream<T> {
-  if (typeof it[Symbol.iterator] === "function") {
-    return new IteratorStreamImpl(it[Symbol.iterator]());
-  }
-  return new IteratorStreamImpl(it as Iterator<T>);
 }

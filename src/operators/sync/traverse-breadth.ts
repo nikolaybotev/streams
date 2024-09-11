@@ -1,15 +1,12 @@
-import { IteratorStream, IteratorStreamImpl } from "../../iterator-stream";
+import { IteratorStream } from "../../iterator-stream";
 
 declare module "../../iterator-stream" {
   interface IteratorStream<T> {
     traverseBreadth(getChildren: (_: T) => Iterable<T>): IteratorStream<T>;
   }
-  interface IteratorStreamImpl<T> {
-    traverseBreadth(getChildren: (_: T) => Iterable<T>): IteratorStream<T>;
-  }
 }
 
-IteratorStreamImpl.prototype.traverseBreadth = function <T>(
+IteratorStream.prototype.traverseBreadth = function <T>(
   getChildren: (_: T) => Iterable<T>,
 ): IteratorStream<T> {
   function* traverseBreadthOperator(it: Iterable<T>) {
@@ -22,5 +19,5 @@ IteratorStreamImpl.prototype.traverseBreadth = function <T>(
       }
     }
   }
-  return new IteratorStreamImpl(traverseBreadthOperator(this));
+  return new IteratorStream(traverseBreadthOperator(this));
 };
