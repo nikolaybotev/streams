@@ -12,10 +12,12 @@ export function readableLines(
   readable: Readable,
   { encoding, separator }: LinesOptions = { encoding: "utf-8" },
 ): AsyncGenerator<string, undefined, unknown> {
-  if (encoding !== undefined) {
-    readable.setEncoding(encoding);
+  async function* readableLinesGenerator() {
+    if (encoding !== undefined) {
+      readable.setEncoding(encoding);
+    }
+    yield* AsyncIteratorStream.from(readable).split(stringSplitter(separator));
   }
-  return AsyncIteratorStream.from(readable).split(
-    stringSplitter(separator),
-  ) as AsyncGenerator<string, undefined, unknown>;
+
+  return readableLinesGenerator() as AsyncGenerator<string, undefined, unknown>;
 }
