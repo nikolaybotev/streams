@@ -1,5 +1,4 @@
-import { AsyncIteratorStream } from "./async-iterator-stream";
-import { toAsync } from "./sources/iterator";
+import { asIterable } from "./util/as-iterable";
 
 /**
  * An asynchronous stream that produces elements of type `T` on demand.
@@ -34,7 +33,9 @@ import { toAsync } from "./sources/iterator";
  *   .forEach(console.log);  // use the IteratorStream APIs
  * ```
  */
-export class IteratorStream<T> implements IterableIterator<T> {
+export class IteratorStream<T, TReturn = unknown>
+  implements Iterator<T, TReturn, unknown>
+{
   /**
    * Creates an IteratorStream from a Iterator or Iterable.
    *
@@ -42,20 +43,24 @@ export class IteratorStream<T> implements IterableIterator<T> {
    * IteratorStream.from([1, 2, 3]).map(x => x * 2).forEach(console.log);
    * ```
    */
-  static from<T>(it: Iterable<T> | Iterator<T>): IteratorStream<T> {
+  static from<T, TReturn = unknown>(
+    it: Iterable<T> | Iterator<T, TReturn, unknown>,
+  ): IteratorStream<T, TReturn> {
     if (typeof it[Symbol.iterator] === "function") {
       return new IteratorStream(it[Symbol.iterator]());
     }
-    return new IteratorStream(it as Iterator<T>);
+    return new IteratorStream(it as Iterator<T, TReturn, unknown>);
   }
 
-  readonly next: (...args: [] | [undefined]) => IteratorResult<T, unknown>;
-  readonly return?: (value?: unknown) => IteratorResult<T, unknown>;
-  readonly throw?: (e?: unknown) => IteratorResult<T, unknown>;
+  readonly next: (...args: [] | [unknown]) => IteratorResult<T, TReturn>;
+  readonly return?: (value?: TReturn) => IteratorResult<T, TReturn>;
+  readonly throw?: (e?: unknown) => IteratorResult<T, TReturn>;
 
   constructor(private readonly iterator: Iterator<T>) {
-    this.next = (...args) => this.iterator.next(...args);
+    // The next argument of is NOT forward to iterator
+    this.next = (_next?: unknown) => this.iterator.next();
     if (this.iterator.return !== undefined) {
+      // The value returned from iterator IS forwarded to the caller
       this.return = (value) => this.iterator.return!(value);
     }
     if (this.iterator.throw !== undefined) {
@@ -67,17 +72,11 @@ export class IteratorStream<T> implements IterableIterator<T> {
     return this;
   }
 
-  streamAsync() {
-    return AsyncIteratorStream.from(toAsync(this));
-  }
-
   [Symbol.iterator]() {
     return this;
   }
 
-  //
-  // Intermediate operations
-  //
+  // #region Intermediate operations
 
   /**
    * Returns a new stream that skips elements of this stream not matched by the
@@ -88,8 +87,8 @@ export class IteratorStream<T> implements IterableIterator<T> {
    * @param predicate a function that decides whether to include each element
    * in the new stream (true) or to exclude the element (false)
    */
-  filter(predicate: (_: T) => boolean): IteratorStream<T> {
-    function* filterOperator(it: IteratorStream<T>) {
+  filter(predicate: (_: T) => boolean): IteratorStream<T, undefined> {
+    function* filterOperator(it: Iterable<T>) {
       for (const v of it) {
         if (predicate(v)) {
           yield v;
@@ -107,8 +106,8 @@ export class IteratorStream<T> implements IterableIterator<T> {
    *
    * @param transform a function to apply to each element of this stream
    */
-  map<U = T>(transform: (_: T) => U): IteratorStream<U> {
-    function* mapOperator(it: IteratorStream<T>) {
+  map<U = T>(transform: (_: T) => U): IteratorStream<U, undefined> {
+    function* mapOperator(it: Iterable<T>) {
       for (const v of it) {
         yield transform(v);
       }
@@ -122,21 +121,23 @@ export class IteratorStream<T> implements IterableIterator<T> {
    *
    * @param transform
    */
-  flatMap<U>(transform: (_: T) => Iterable<U>): IteratorStream<U> {
-    function* flatMapOperator(it: IteratorStream<T>) {
+  flatMap<U>(
+    transform: (_: T) => Iterable<U> | Iterator<U, unknown, undefined>,
+  ): IteratorStream<U, undefined> {
+    function* flatMapOperator(it: Iterable<T>) {
       for (const nested of it) {
-        yield* transform(nested);
+        yield* asIterable(transform(nested));
       }
     }
     return new IteratorStream(flatMapOperator(this));
   }
 
-  batch(batchSize: number): IteratorStream<T[]> {
+  batch(batchSize: number): IteratorStream<T[], undefined> {
     if (batchSize < 1) {
       throw new Error("batchSize should be positive");
     }
 
-    function* batchOperator(it: IteratorStream<T>) {
+    function* batchOperator(it: Iterable<T>) {
       let acc: T[] = [];
       for (const v of it) {
         acc.push(v);
@@ -160,8 +161,8 @@ export class IteratorStream<T> implements IterableIterator<T> {
    *
    * @param limit the maximum number of items to produce
    */
-  take(limit: number): IteratorStream<T> {
-    function* takeOperator(it: IteratorStream<T>) {
+  take(limit: number): IteratorStream<T, undefined> {
+    function* takeOperator(it: Iterable<T>) {
       let count = 0;
       if (count >= limit) {
         return;
@@ -183,8 +184,8 @@ export class IteratorStream<T> implements IterableIterator<T> {
    *
    * @param n
    */
-  drop(n: number): IteratorStream<T> {
-    function* dropOperator(it: IteratorStream<T>) {
+  drop(n: number): IteratorStream<T, undefined> {
+    function* dropOperator(it: Iterable<T>) {
       let count = 0;
       for (const v of it) {
         if (count >= n) {
@@ -196,8 +197,8 @@ export class IteratorStream<T> implements IterableIterator<T> {
     return new IteratorStream(dropOperator(this));
   }
 
-  dropWhile(predicate: (_: T) => boolean): IteratorStream<T> {
-    function* dropWhileOperator(it: IteratorStream<T>) {
+  dropWhile(predicate: (_: T) => boolean): IteratorStream<T, undefined> {
+    function* dropWhileOperator(it: Iterable<T>) {
       let dropping = true;
       for (const v of it) {
         dropping = dropping && predicate(v);
@@ -209,8 +210,8 @@ export class IteratorStream<T> implements IterableIterator<T> {
     return new IteratorStream(dropWhileOperator(this));
   }
 
-  takeWhile(predicate: (_: T) => boolean): IteratorStream<T> {
-    function* takeWhileOperator(it: IteratorStream<T>) {
+  takeWhile(predicate: (_: T) => boolean): IteratorStream<T, undefined> {
+    function* takeWhileOperator(it: Iterable<T>) {
       for (const v of it) {
         if (!predicate(v)) {
           return;
@@ -221,8 +222,8 @@ export class IteratorStream<T> implements IterableIterator<T> {
     return new IteratorStream(takeWhileOperator(this));
   }
 
-  peek(observer: (_: T) => void): IteratorStream<T> {
-    function* peekOperator(it: IteratorStream<T>) {
+  peek(observer: (_: T) => void): IteratorStream<T, undefined> {
+    function* peekOperator(it: Iterable<T>) {
       for (const v of it) {
         observer(v);
         yield v;
@@ -231,9 +232,9 @@ export class IteratorStream<T> implements IterableIterator<T> {
     return new IteratorStream(peekOperator(this));
   }
 
-  //
-  // Terminal operations
-  //
+  // #endregion Intermediate operations
+
+  // #region Terminal operations
 
   /**
    *
@@ -437,4 +438,6 @@ export class IteratorStream<T> implements IterableIterator<T> {
     }
     return result;
   }
+
+  // #endregion Terminal operations
 }

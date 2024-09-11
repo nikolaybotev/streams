@@ -2,9 +2,9 @@ export {};
 
 declare global {
   interface String {
-    chars(): Iterable<string>;
-    charCodes(): Iterable<number>;
-    codePoints(): Iterable<string>;
+    chars(): Generator<string, void, unknown>;
+    charCodes(): Generator<number, void, unknown>;
+    codePoints(): Generator<string, void, unknown>;
   }
 }
 

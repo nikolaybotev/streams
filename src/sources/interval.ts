@@ -1,12 +1,12 @@
 import { EventHandler, fromEventPattern } from "./event";
 
 export interface IntervalScheduler<T = unknown> {
-  schedule(interval: number, listener: () => unknown): T;
+  schedule(interval: number, listener: () => void): T;
   cancel(scheduled: T): void;
 }
 
 export const defaultScheduler = {
-  schedule(interval: number, listener: () => unknown) {
+  schedule(interval: number, listener: () => void) {
     return setInterval(listener, interval);
   },
   cancel(scheduled) {
@@ -17,7 +17,7 @@ export const defaultScheduler = {
 export function iteratorInterval(
   periodMillis: number,
   scheduler: IntervalScheduler = defaultScheduler,
-): AsyncGenerator<number, void, unknown> {
+): AsyncGenerator<number, undefined, unknown> {
   let timer: unknown;
 
   function startTimer(handler: EventHandler<number>) {

@@ -3,13 +3,13 @@ import { splitChunk, Splitter } from "../../util/splitter";
 
 declare module "../../iterator-stream" {
   interface IteratorStream<T> {
-    split<U>(by: Splitter<T, U>): IteratorStream<U>;
+    split<U>(by: Splitter<T, U>): IteratorStream<U, undefined>;
   }
 }
 
 IteratorStream.prototype.split = function <T, U>(
   by: Splitter<T, U>,
-): IteratorStream<U> {
+): IteratorStream<U, undefined> {
   function* splitOperator(it: IteratorStream<T>) {
     let remainder: U | undefined;
     for (const chunk of it) {

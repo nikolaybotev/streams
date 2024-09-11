@@ -3,13 +3,13 @@ import { splitChunk, Splitter } from "../../util/splitter";
 
 declare module "../../async-iterator-stream" {
   interface AsyncIteratorStream<T> {
-    split<U>(by: Splitter<T, U>): AsyncIteratorStream<U>;
+    split<U>(by: Splitter<T, U>): AsyncIteratorStream<U, undefined>;
   }
 }
 
 AsyncIteratorStream.prototype.split = function <T, U>(
   by: Splitter<T, U>,
-): AsyncIteratorStream<U> {
+): AsyncIteratorStream<U, undefined> {
   async function* splitOperator(it: AsyncIteratorStream<T>) {
     let remainder: U | undefined;
     for await (const chunk of it) {

@@ -3,7 +3,7 @@ import { PassThrough, Readable } from "node:stream";
 export async function* readableChunks(
   readable: Readable,
   encoding?: BufferEncoding,
-): AsyncGenerator<Buffer | string, void, unknown> {
+): AsyncGenerator<Buffer | string, undefined, unknown> {
   const passThrough = new PassThrough();
 
   if (encoding !== undefined) {

@@ -1,13 +1,16 @@
 import { IteratorStream } from "../../iterator-stream";
+import { asIterable } from "../../util/as-iterable";
 
 declare module "../../iterator-stream" {
   interface IteratorStream<T> {
-    traverseBreadth(getChildren: (_: T) => Iterable<T>): IteratorStream<T>;
+    traverseBreadth(
+      getChildren: (_: T) => Iterable<T> | Iterator<T, unknown, undefined>,
+    ): IteratorStream<T>;
   }
 }
 
 IteratorStream.prototype.traverseBreadth = function <T>(
-  getChildren: (_: T) => Iterable<T>,
+  getChildren: (_: T) => Iterable<T> | Iterator<T, unknown, undefined>,
 ): IteratorStream<T> {
   function* traverseBreadthOperator(it: Iterable<T>) {
     const queue = [it] as Iterable<T>[];
@@ -15,7 +18,7 @@ IteratorStream.prototype.traverseBreadth = function <T>(
     while ((item = queue.shift()) !== undefined) {
       for (const node of item) {
         yield node;
-        queue.push(getChildren(node));
+        queue.push(asIterable(getChildren(node)));
       }
     }
   }

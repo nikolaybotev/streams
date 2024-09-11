@@ -20,7 +20,7 @@ type ControlFlowHandlers<TReturn> = {
   ) => Promise<TReturn> | TReturn;
 };
 
-export function makeAsyncGeneratorPair<T, TReturn = void, TNext = undefined>(
+export function makeAsyncGeneratorPair<T, TReturn = unknown, TNext = unknown>(
   consumerHandlers?: ControlFlowHandlers<TReturn>,
   producerHandlers?: ControlFlowHandlers<TReturn>,
 ): [AsyncGenerator<T, TReturn, TNext>, AsyncGenerator<TNext, TReturn, T>] {

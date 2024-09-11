@@ -4,12 +4,14 @@ import { readableChunks } from "../sources/readable-chunks";
 
 declare module "node:stream" {
   interface Readable {
-    chunks(encoding?: BufferEncoding): AsyncIterableIterator<Buffer | string>;
-    lines(options?: LinesOptions): AsyncIterableIterator<string>;
+    chunks(
+      encoding?: BufferEncoding,
+    ): AsyncGenerator<Buffer | string, undefined, unknown>;
+    lines(options?: LinesOptions): AsyncGenerator<string, undefined, unknown>;
   }
   interface Duplex {
-    chunks(encoding?: BufferEncoding): AsyncIterableIterator<Buffer | string>;
-    lines(options?: LinesOptions): AsyncIterableIterator<string>;
+    chunks(encoding?: BufferEncoding): AsyncGenerator<Buffer | string>;
+    lines(options?: LinesOptions): AsyncGenerator<string>;
   }
 }
 

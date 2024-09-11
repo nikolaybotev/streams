@@ -11,9 +11,11 @@ export type LinesOptions = {
 export function readableLines(
   readable: Readable,
   { encoding, separator }: LinesOptions = { encoding: "utf-8" },
-): AsyncIterableIterator<string> {
+): AsyncGenerator<string, undefined, unknown> {
   if (encoding !== undefined) {
     readable.setEncoding(encoding);
   }
-  return AsyncIteratorStream.from(readable).split(stringSplitter(separator));
+  return AsyncIteratorStream.from(readable).split(
+    stringSplitter(separator),
+  ) as AsyncGenerator<string, undefined, unknown>;
 }
