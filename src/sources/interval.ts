@@ -17,7 +17,7 @@ export const defaultScheduler = {
 export function iteratorInterval(
   periodMillis: number,
   scheduler: IntervalScheduler = defaultScheduler,
-): AsyncGenerator<number> {
+): AsyncGenerator<number, void, unknown> {
   let timer: unknown;
 
   function startTimer(handler: EventHandler<number>) {

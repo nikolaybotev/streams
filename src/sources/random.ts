@@ -1,4 +1,4 @@
-export function* iteratorRandom(): Generator<number> {
+export function* iteratorRandom(): Generator<number, void, unknown> {
   while (true) {
     yield Math.random();
   }

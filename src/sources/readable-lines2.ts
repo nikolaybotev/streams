@@ -7,7 +7,7 @@ export { LinesOptions } from "./readable-lines";
 export async function* readableLines(
   readable: Readable,
   { encoding }: LinesOptions = { encoding: "utf-8" },
-): AsyncGenerator<string, void, undefined> {
+): AsyncGenerator<string, void, unknown> {
   if (encoding !== undefined) {
     readable.setEncoding(encoding);
   }
