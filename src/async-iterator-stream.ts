@@ -1,15 +1,8 @@
 import { toAsync } from "./sources/iterator";
 
-/**
- * An object containing factory methods for AsyncIteratorStream.
- *
- * ```
- * AsyncIteratorStream.from([1, 2, 3]).map(x => x * 2).forEach(console.log);
- * ```
- */
-export const AsyncIteratorStream = {
-  from: asyncIteratorStreamFrom,
-};
+//
+// AsyncIteratorStream Implementation
+//
 
 /**
  * An asynchronous stream that produces elements of type `T` on demand.
@@ -44,164 +37,28 @@ export const AsyncIteratorStream = {
  *   .forEach(console.log);  // use the AsyncIteratorStream APIs
  * ```
  */
-export interface AsyncIteratorStream<T> extends AsyncIterableIterator<T> {
-  //
-  // Intermediate operations
-  //
-
-  /**
-   * Returns a new stream that skips elements of this stream not matched by the
-   * `predicate`.
-   *
-   * See also [IteratorHelpers#filter](https://github.com/tc39/proposal-iterator-helpers#filterfiltererfn).
-   *
-   * @param predicate a function that decides whether to include each element
-   * in the new stream (true) or to exclude the element (false)
-   */
-  filter(predicate: (_: T) => boolean): AsyncIteratorStream<T>;
-
-  /**
-   * Returns a new stream that transforms each element of this stream
-   * using the provided function.
-   *
-   * See also [IteratorHelpers#map](https://github.com/tc39/proposal-iterator-helpers#mapmapperfn).
-   *
-   * @param transform a function to apply to each element of this stream
-   */
-  map<U = T>(transform: (_: T) => U): AsyncIteratorStream<U>;
-
-  /**
-   * Like `map` but the result from each call to `transform` is awaited
-   * before producing the next transformed element.
-   *
-   * @param transform an async function to apply to each element of this stream
-   */
-  mapAwait<U = T>(transform: (_: T) => Promise<U>): AsyncIteratorStream<U>;
-
-  /**
-   *
-   * See also [IteratorHelpers#flatMap](https://github.com/tc39/proposal-iterator-helpers#flatmapmapperfn).
-   *
-   * @param transform
-   */
-  flatMap<U>(transform: (_: T) => AsyncIterable<U>): AsyncIteratorStream<U>;
-
-  batch(batchSize: number): AsyncIteratorStream<T[]>;
-
-  /**
-   * Returns a new stream that produces up to the first `limit` number of
-   * elements of this stream.
-   *
-   * See also [IteratorHelpers#take](https://github.com/tc39/proposal-iterator-helpers#takelimit).
-   *
-   * @param limit the maximum number of items to produce
-   */
-  take(limit: number): AsyncIteratorStream<T>;
-
-  /**
-   *
-   * See also [IteratorHelpers#drop](https://github.com/tc39/proposal-iterator-helpers#droplimit).
-   *
-   * @param n
-   */
-  drop(n: number): AsyncIteratorStream<T>;
-
-  dropWhile(predicate: (_: T) => boolean): AsyncIteratorStream<T>;
-
-  takeWhile(predicate: (_: T) => boolean): AsyncIteratorStream<T>;
-
-  peek(observer: (_: T) => void): AsyncIteratorStream<T>;
-
-  //
-  // Terminal operations
-  //
-
-  /**
-   *
-   * See also [IteratorHelpers#forEach](https://github.com/tc39/proposal-iterator-helpers#foreachfn).
-   *
-   * @param block
-   */
-  forEach(block: (_: T) => unknown | Promise<unknown>): Promise<void>;
-
-  collect<A, R = A>(
-    container: A,
-    accumulator: (a: A, t: T) => void,
-    finisher: (_: A) => R,
-  ): Promise<R>;
-  collect<A>(container: A, accumulator: (a: A, t: T) => void): Promise<A>;
-
-  /**
-   *
-   * See also [IteratorHelpers#reduce](https://github.com/tc39/proposal-iterator-helpers#reducereducer--initialvalue-).
-   *
-   * @param reducer
-   * @param initial
-   */
-  reduce<R = T>(reducer: (a: R, b: T) => R, initial?: R): Promise<R>;
-
-  /**
-   * Like {@link reduce()} but returns `undefined` if this stream is empty
-   * instead of throwing `TypeError`.
-   *
-   * @param reducer
-   * @param initial
-   */
-  fold<R = T>(reducer: (a: R, b: T) => R, initial: R): Promise<R>;
-  fold(reducer: (a: T, b: T) => T): Promise<T | undefined>;
-
-  /**
-   *
-   * See also [IteratorHelpers#every](https://github.com/tc39/proposal-iterator-helpers#everyfn).
-   *
-   * @param predicate
-   */
-  every(predicate: (_: T) => boolean): Promise<boolean>;
-
-  /**
-   * See also [IteratorHelpers#some](https://github.com/tc39/proposal-iterator-helpers#somefn).
-   *
-   * @param predicate
-   */
-  some(predicate: (_: T) => boolean): Promise<boolean>;
-
-  none(predicate: (_: T) => boolean): Promise<boolean>;
-
-  count(): Promise<number>;
-
-  /**
-   * Returns the first element that matches the predicate.
-   *
-   * This is the same as the {@link first()} method except that the predicate is
-   * required and a `TypeError` will be thrown if a predicate is not supplied.
-   *
-   * See also [IteratorHelpers#find](https://github.com/tc39/proposal-iterator-helpers#findfn).
-   *
-   * @param predicate
-   */
-  find(predicate: (_: T) => boolean): Promise<T | undefined>;
-
-  first(predicate?: (_: T) => boolean): Promise<T | undefined>;
-
-  last(predicate?: (_: T) => boolean): Promise<T | undefined>;
-
-  max(comparator: (a: T, b: T) => number): Promise<T | undefined>;
-
-  min(comparator: (a: T, b: T) => number): Promise<T | undefined>;
-
-  /**
-   * See also [IteratorHelpers#toArray](https://github.com/tc39/proposal-iterator-helpers#toarray).
-   */
-  toArray(): Promise<T[]>;
-}
-
-//
-// AsyncIteratorStream Implementation
-//
-
-export class AsyncIteratorStreamImpl<T>
+export class AsyncIteratorStream<T>
   implements AsyncIteratorStream<T>, AsyncIterableIterator<T>
 {
+  /**
+   * Creates an AsyncIteratorStream from an Iterator or Iterable.
+   *
+   * ```
+   * AsyncIteratorStream.from([1, 2, 3]).map(x => x * 2).forEach(console.log);
+   * ```
+   */
+  static from<T>(
+    it: Iterable<T> | AsyncIterable<T> | AsyncIterator<T>,
+  ): AsyncIteratorStream<T> {
+    if (typeof it[Symbol.asyncIterator] === "function") {
+      return new AsyncIteratorStream(it[Symbol.asyncIterator]());
+    }
+    if (typeof it[Symbol.iterator] === "function") {
+      return new AsyncIteratorStream(toAsync(it[Symbol.iterator]()));
+    }
+    return new AsyncIteratorStream(it as AsyncIterator<T>);
+  }
+
   // The AsyncIterator protocol
   readonly next: (
     ...args: [] | [undefined]
@@ -227,6 +84,19 @@ export class AsyncIteratorStreamImpl<T>
     return this;
   }
 
+  //
+  // Intermediate operations
+  //
+
+  /**
+   * Returns a new stream that skips elements of this stream not matched by the
+   * `predicate`.
+   *
+   * See also [IteratorHelpers#filter](https://github.com/tc39/proposal-iterator-helpers#filterfiltererfn).
+   *
+   * @param predicate a function that decides whether to include each element
+   * in the new stream (true) or to exclude the element (false)
+   */
   filter(predicate: (_: T) => boolean): AsyncIteratorStream<T> {
     async function* filterOperator(it: AsyncIteratorStream<T>) {
       for await (const v of it) {
@@ -235,9 +105,17 @@ export class AsyncIteratorStreamImpl<T>
         }
       }
     }
-    return new AsyncIteratorStreamImpl(filterOperator(this));
+    return new AsyncIteratorStream(filterOperator(this));
   }
 
+  /**
+   * Returns a new stream that transforms each element of this stream
+   * using the provided function.
+   *
+   * See also [IteratorHelpers#map](https://github.com/tc39/proposal-iterator-helpers#mapmapperfn).
+   *
+   * @param transform a function to apply to each element of this stream
+   */
   map<U = T>(transform: (_: T) => U): AsyncIteratorStream<U> {
     // Do not use a generator here, as it will await the result of the
     // transform before yielding each mapped value.
@@ -284,25 +162,37 @@ export class AsyncIteratorStreamImpl<T>
 
       return mappedIterator;
     }
-    return new AsyncIteratorStreamImpl(mapOperator(this));
+    return new AsyncIteratorStream(mapOperator(this));
   }
 
+  /**
+   * Like `map` but the result from each call to `transform` is awaited
+   * before producing the next transformed element.
+   *
+   * @param transform an async function to apply to each element of this stream
+   */
   mapAwait<U = T>(transform: (_: T) => Promise<U>): AsyncIteratorStream<U> {
     async function* mapAwaitOperator(it: AsyncIteratorStream<T>) {
       for await (const v of it) {
         yield transform(v);
       }
     }
-    return new AsyncIteratorStreamImpl(mapAwaitOperator(this));
+    return new AsyncIteratorStream(mapAwaitOperator(this));
   }
 
+  /**
+   *
+   * See also [IteratorHelpers#flatMap](https://github.com/tc39/proposal-iterator-helpers#flatmapmapperfn).
+   *
+   * @param transform
+   */
   flatMap<U>(transform: (_: T) => AsyncIterable<U>): AsyncIteratorStream<U> {
     async function* flatMapOperator(it: AsyncIteratorStream<T>) {
       for await (const nested of it) {
         yield* transform(nested);
       }
     }
-    return new AsyncIteratorStreamImpl(flatMapOperator(this));
+    return new AsyncIteratorStream(flatMapOperator(this));
   }
 
   batch(batchSize: number): AsyncIteratorStream<T[]> {
@@ -323,26 +213,40 @@ export class AsyncIteratorStreamImpl<T>
         yield acc;
       }
     }
-    return new AsyncIteratorStreamImpl(batchOperator(this));
+    return new AsyncIteratorStream(batchOperator(this));
   }
 
-  take(maxSize: number): AsyncIteratorStream<T> {
+  /**
+   * Returns a new stream that produces up to the first `limit` number of
+   * elements of this stream.
+   *
+   * See also [IteratorHelpers#take](https://github.com/tc39/proposal-iterator-helpers#takelimit).
+   *
+   * @param limit the maximum number of items to produce
+   */
+  take(limit: number): AsyncIteratorStream<T> {
     async function* takeOperator(it: AsyncIteratorStream<T>) {
       let count = 0;
-      if (count >= maxSize) {
+      if (count >= limit) {
         return;
       }
       for await (const v of it) {
         yield v;
         count += 1;
-        if (count >= maxSize) {
+        if (count >= limit) {
           return;
         }
       }
     }
-    return new AsyncIteratorStreamImpl(takeOperator(this));
+    return new AsyncIteratorStream(takeOperator(this));
   }
 
+  /**
+   *
+   * See also [IteratorHelpers#drop](https://github.com/tc39/proposal-iterator-helpers#droplimit).
+   *
+   * @param n
+   */
   drop(n: number): AsyncIteratorStream<T> {
     async function* dropOperator(it: AsyncIteratorStream<T>) {
       let count = 0;
@@ -353,7 +257,7 @@ export class AsyncIteratorStreamImpl<T>
         count += 1;
       }
     }
-    return new AsyncIteratorStreamImpl(dropOperator(this));
+    return new AsyncIteratorStream(dropOperator(this));
   }
 
   dropWhile(predicate: (_: T) => boolean): AsyncIteratorStream<T> {
@@ -366,7 +270,7 @@ export class AsyncIteratorStreamImpl<T>
         }
       }
     }
-    return new AsyncIteratorStreamImpl(dropWhileOperator(this));
+    return new AsyncIteratorStream(dropWhileOperator(this));
   }
 
   takeWhile(predicate: (_: T) => boolean): AsyncIteratorStream<T> {
@@ -378,7 +282,7 @@ export class AsyncIteratorStreamImpl<T>
         yield v;
       }
     }
-    return new AsyncIteratorStreamImpl(takeWhileOperator(this));
+    return new AsyncIteratorStream(takeWhileOperator(this));
   }
 
   peek(observer: (_: T) => void): AsyncIteratorStream<T> {
@@ -388,14 +292,31 @@ export class AsyncIteratorStreamImpl<T>
         yield v;
       }
     }
-    return new AsyncIteratorStreamImpl(peekOperator(this));
+    return new AsyncIteratorStream(peekOperator(this));
   }
 
+  //
+  // Terminal operations
+  //
+
+  /**
+   *
+   * See also [IteratorHelpers#forEach](https://github.com/tc39/proposal-iterator-helpers#foreachfn).
+   *
+   * @param block
+   */
   async forEach(block: (_: T) => unknown | Promise<unknown>): Promise<void> {
     for await (const v of this) {
       await block(v);
     }
   }
+
+  collect<A, R = A>(
+    container: A,
+    accumulator: (a: A, t: T) => void,
+    finisher: (_: A) => R,
+  ): Promise<R>;
+  collect<A>(container: A, accumulator: (a: A, t: T) => void): Promise<A>;
 
   async collect<A, R = A>(
     container: A,
@@ -408,6 +329,12 @@ export class AsyncIteratorStreamImpl<T>
     return finisher ? finisher(container) : (container as unknown as R);
   }
 
+  /**
+   *
+   * See also [IteratorHelpers#every](https://github.com/tc39/proposal-iterator-helpers#everyfn).
+   *
+   * @param predicate
+   */
   async every(predicate: (_: T) => boolean): Promise<boolean> {
     for await (const v of this) {
       if (!(await predicate(v))) {
@@ -443,6 +370,16 @@ export class AsyncIteratorStreamImpl<T>
     return count;
   }
 
+  /**
+   * Returns the first element that matches the predicate.
+   *
+   * This is the same as the {@link first()} method except that the predicate is
+   * required and a `TypeError` will be thrown if a predicate is not supplied.
+   *
+   * See also [IteratorHelpers#find](https://github.com/tc39/proposal-iterator-helpers#findfn).
+   *
+   * @param predicate
+   */
   async find(predicate: (_: T) => boolean): Promise<T | undefined> {
     for await (const v of this) {
       if (await predicate(v)) {
@@ -503,13 +440,20 @@ export class AsyncIteratorStreamImpl<T>
     return result;
   }
 
+  /**
+   *
+   * See also [IteratorHelpers#reduce](https://github.com/tc39/proposal-iterator-helpers#reducereducer--initialvalue-).
+   *
+   * @param reducer
+   * @param initial
+   */
   async reduce<R = T>(reducer: (a: R, b: T) => R, initial?: R): Promise<R> {
     const hasInitial = arguments.length >= 2;
     let firstItem = !hasInitial;
     let result = initial;
     for await (const v of this) {
       if (firstItem) {
-        result = v as R; // R is assumed to be T when there is no initial value
+        result = v as unknown as R; // R is assumed to be T when there is no initial value
         firstItem = false;
       } else {
         result = reducer(result!, v);
@@ -520,6 +464,16 @@ export class AsyncIteratorStreamImpl<T>
     }
     return result!;
   }
+
+  /**
+   * Like {@link reduce()} but returns `undefined` if this stream is empty
+   * instead of throwing `TypeError`.
+   *
+   * @param reducer
+   * @param initial
+   */
+  async fold<R = T>(reducer: (a: R, b: T) => R, initial: R): Promise<R>;
+  async fold(reducer: (a: T, b: T) => T): Promise<T | undefined>;
 
   async fold<R = T>(
     reducer: (a: R, b: T) => R,
@@ -539,6 +493,9 @@ export class AsyncIteratorStreamImpl<T>
     return result;
   }
 
+  /**
+   * See also [IteratorHelpers#toArray](https://github.com/tc39/proposal-iterator-helpers#toarray).
+   */
   async toArray(): Promise<T[]> {
     const result = [] as T[];
     for await (const v of this) {
@@ -546,20 +503,4 @@ export class AsyncIteratorStreamImpl<T>
     }
     return result;
   }
-}
-
-//
-// AsyncIteratorStream Factory
-//
-
-function asyncIteratorStreamFrom<T>(
-  it: Iterable<T> | AsyncIterable<T> | AsyncIterator<T>,
-): AsyncIteratorStream<T> {
-  if (typeof it[Symbol.asyncIterator] === "function") {
-    return new AsyncIteratorStreamImpl(it[Symbol.asyncIterator]());
-  }
-  if (typeof it[Symbol.iterator] === "function") {
-    return new AsyncIteratorStreamImpl(toAsync(it[Symbol.iterator]()));
-  }
-  return new AsyncIteratorStreamImpl(it as AsyncIterator<T>);
 }

@@ -1,19 +1,13 @@
-import {
-  AsyncIteratorStream,
-  AsyncIteratorStreamImpl,
-} from "../../async-iterator-stream";
+import { AsyncIteratorStream } from "../../async-iterator-stream";
 import { splitChunk, Splitter } from "../../util/splitter";
 
 declare module "../../async-iterator-stream" {
   interface AsyncIteratorStream<T> {
     split<U>(by: Splitter<T, U>): AsyncIteratorStream<U>;
   }
-  interface AsyncIteratorStreamImpl<T> {
-    split<U>(by: Splitter<T, U>): AsyncIteratorStream<U>;
-  }
 }
 
-AsyncIteratorStreamImpl.prototype.split = function <T, U>(
+AsyncIteratorStream.prototype.split = function <T, U>(
   by: Splitter<T, U>,
 ): AsyncIteratorStream<U> {
   async function* splitOperator(it: AsyncIteratorStream<T>) {
@@ -28,5 +22,5 @@ AsyncIteratorStreamImpl.prototype.split = function <T, U>(
       yield remainder;
     }
   }
-  return new AsyncIteratorStreamImpl(splitOperator(this));
+  return new AsyncIteratorStream(splitOperator(this));
 };

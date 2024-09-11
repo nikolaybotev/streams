@@ -1,7 +1,4 @@
-import {
-  AsyncIteratorStream,
-  AsyncIteratorStreamImpl,
-} from "../../async-iterator-stream";
+import { AsyncIteratorStream } from "../../async-iterator-stream";
 
 declare module "../../async-iterator-stream" {
   interface AsyncIteratorStream<T> {
@@ -9,14 +6,9 @@ declare module "../../async-iterator-stream" {
       getChildren: (_: T) => AsyncIterable<T>,
     ): AsyncIteratorStream<T>;
   }
-  interface AsyncIteratorStreamImpl<T> {
-    traverseBreadth(
-      getChildren: (_: T) => AsyncIterable<T>,
-    ): AsyncIteratorStream<T>;
-  }
 }
 
-AsyncIteratorStreamImpl.prototype.traverseBreadth = function <T>(
+AsyncIteratorStream.prototype.traverseBreadth = function <T>(
   getChildren: (_: T) => AsyncIterable<T>,
 ): AsyncIteratorStream<T> {
   async function* traverseBreadthOperator(it: AsyncIterable<T>) {
@@ -29,5 +21,5 @@ AsyncIteratorStreamImpl.prototype.traverseBreadth = function <T>(
       }
     }
   }
-  return new AsyncIteratorStreamImpl(traverseBreadthOperator(this));
+  return new AsyncIteratorStream(traverseBreadthOperator(this));
 };
