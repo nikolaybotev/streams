@@ -1,11 +1,11 @@
 // TypeScript Version: >=5.6.2
-import { AsyncIteratorStream } from "../async-iterator-stream";
 import { IteratorStream } from "../iterator-stream";
+import { toAsync } from "../sources/iterator";
 
 declare global {
   interface IteratorObject<T> {
     stream(): IteratorStream<T>;
-    streamAsync(): AsyncIteratorStream<T>;
+    toAsync(): AsyncGenerator<T>;
   }
 }
 
@@ -17,6 +17,6 @@ IteratorObjectPrototype.stream = function () {
   return IteratorStream.from(this);
 };
 
-IteratorObjectPrototype.streamAsync = function () {
-  return AsyncIteratorStream.from(this);
+IteratorObjectPrototype.toAsync = function () {
+  return toAsync(this);
 };

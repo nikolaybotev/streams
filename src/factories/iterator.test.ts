@@ -1,4 +1,5 @@
 import "./iterator";
+import "./async-iterator";
 
 test("the Array prototype is not modified", async () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,7 +25,8 @@ test("IterableIterator.streamAsync works with generator functions", async () => 
   }
 
   const r = await gen()
-    .streamAsync()
+    .toAsync()
+    .stream()
     .map((x) => x * 2)
     .toArray();
 
@@ -35,7 +37,8 @@ test("IterableIterator.streamAsync works with Array.keys()", async () => {
   const gen = [1, 2, 3].keys();
 
   const r = await gen
-    .streamAsync()
+    .toAsync()
+    .stream()
     .map((x) => x * 2)
     .toArray();
 
@@ -46,7 +49,8 @@ test("IterableIterator.streamAsync works with Array.values()", async () => {
   const gen = [1, 2, 3].values();
 
   const r = await gen
-    .streamAsync()
+    .toAsync()
+    .stream()
     .map((x) => x * 2)
     .toArray();
 
@@ -57,7 +61,8 @@ test("IterableIterator.streamAsync works with TypedArray.keys()", async () => {
   const gen = Float64Array.of(1, 2, 3).keys();
 
   const r = await gen
-    .streamAsync()
+    .toAsync()
+    .stream()
     .map((x) => x * 2)
     .toArray();
 
@@ -68,7 +73,8 @@ test("IterableIterator.streamAsync works with TypedArray.values()", async () => 
   const gen = Float64Array.of(1, 2, 3).values();
 
   const r = await gen
-    .streamAsync()
+    .toAsync()
+    .stream()
     .map((x) => x * 2)
     .toArray();
 
@@ -83,7 +89,8 @@ test("IterableIterator.streamAsync works with Map.keys()", async () => {
   const gen = map.keys();
 
   const r = await gen
-    .streamAsync()
+    .toAsync()
+    .stream()
     .map((x) => x * 2)
     .toArray();
 
@@ -98,7 +105,8 @@ test("IterableIterator.streamAsync works with Map.values()", async () => {
   const gen = map.values();
 
   const r = await gen
-    .streamAsync()
+    .toAsync()
+    .stream()
     .map((x) => x.toUpperCase())
     .toArray();
 
@@ -114,7 +122,8 @@ test("IterableIterator.streamAsync works with Map.entries()", async () => {
   const gen = map.entries();
 
   const r = await gen
-    .streamAsync()
+    .toAsync()
+    .stream()
     .map(([k, v]) => [k + 1, v.toUpperCase()])
     .toArray();
 
@@ -130,7 +139,8 @@ test("IterableIterator.streamAsync works with Set.keys()", async () => {
   const gen = set.keys();
 
   const r = await gen
-    .streamAsync()
+    .toAsync()
+    .stream()
     .map((x) => x * 2)
     .toArray();
 
@@ -142,7 +152,8 @@ test("IterableIterator.streamAsync works with Set.values()", async () => {
   const gen = set.values();
 
   const r = await gen
-    .streamAsync()
+    .toAsync()
+    .stream()
     .map((x) => x * 3)
     .toArray();
 
@@ -154,7 +165,8 @@ test("IterableIterator.streamAsync works with Set.entries()", async () => {
   const gen = set.entries();
 
   const r = await gen
-    .streamAsync()
+    .toAsync()
+    .stream()
     .map(([k, v]) => [k * 2, v * 3])
     .toArray();
 
