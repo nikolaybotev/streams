@@ -5,13 +5,13 @@ declare module "../../iterator-stream" {
   interface IteratorStream<T> {
     traverseBreadth(
       getChildren: (_: T) => Iterable<T> | Iterator<T, unknown, undefined>,
-    ): IteratorStream<T>;
+    ): IteratorStream<T, undefined>;
   }
 }
 
 IteratorStream.prototype.traverseBreadth = function <T>(
   getChildren: (_: T) => Iterable<T> | Iterator<T, unknown, undefined>,
-): IteratorStream<T> {
+): IteratorStream<T, undefined> {
   function* traverseBreadthOperator(it: Iterable<T>) {
     const queue = [it] as Iterable<T>[];
     let item: Iterable<T> | undefined;
