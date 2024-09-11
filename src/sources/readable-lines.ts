@@ -1,8 +1,7 @@
-import "../factories/async-iterator";
 import "../operators/async/split";
 import { Readable } from "node:stream";
-import { readableChunks } from "./readable-chunks";
 import { stringSplitter } from "../util/splitter";
+import { AsyncIteratorStream } from "../async-iterator-stream";
 
 export type LinesOptions = {
   encoding?: BufferEncoding;
@@ -12,8 +11,11 @@ export type LinesOptions = {
 export function readableLines(
   readable: Readable,
   { encoding, separator }: LinesOptions = { encoding: "utf-8" },
-): AsyncIterableIterator<string> {
-  return readableChunks(readable, encoding)
-    .stream()
-    .split(stringSplitter(separator));
+): AsyncGenerator<string, undefined, unknown> {
+  if (encoding !== undefined) {
+    readable.setEncoding(encoding);
+  }
+  return AsyncIteratorStream.from(readable).split(
+    stringSplitter(separator),
+  ) as AsyncGenerator<string, undefined, unknown>;
 }

@@ -6,16 +6,13 @@ type EventEmitter<T> = {
   // jQuery and Node.js NodeEventTarget & EventEmitter
   // https://api.jquery.com/on/
   // https://nodejs.org/api/events.html
-  on?(eventName: string | symbol, listener: EventHandler<T>): unknown;
-  off?(eventName: string | symbol, listener: EventHandler<T>): unknown;
+  on?(eventName: string | symbol, listener: EventHandler<T>): void;
+  off?(eventName: string | symbol, listener: EventHandler<T>): void;
 
   // Node.js NodeEventTarget & EventEmitter
   // https://nodejs.org/api/events.html
-  addListener?(eventName: string | symbol, listener: EventHandler<T>): unknown;
-  removeListener?(
-    eventName: string | symbol,
-    listener: EventHandler<T>,
-  ): unknown;
+  addListener?(eventName: string | symbol, listener: EventHandler<T>): void;
+  removeListener?(eventName: string | symbol, listener: EventHandler<T>): void;
 
   // DOM EventTarget and Node.js EventTarget
   // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
@@ -24,12 +21,12 @@ type EventEmitter<T> = {
     eventName: string | symbol,
     listener: EventHandler<T>,
     options?: object,
-  ): unknown;
+  ): void;
   removeEventListener?(
     eventName: string | symbol,
     listener: EventHandler<T>,
     options?: object,
-  ): unknown;
+  ): void;
 };
 
 export function fromEvent<T>(
@@ -57,10 +54,10 @@ export function fromEvent<T>(
 }
 
 export function fromEventPattern<T>(
-  addHandler: (handler: EventHandler<T>) => unknown,
+  addHandler: (handler: EventHandler<T>) => void,
   removeHandler?: (handler: EventHandler<T>) => void,
-): AsyncGenerator<T> {
-  const [eventConsumer, eventProducer] = makeAsyncGeneratorPair<T>({
+): AsyncGenerator<T, undefined, unknown> {
+  const [eventConsumer, eventProducer] = makeAsyncGeneratorPair<T, undefined>({
     onReturn: stop,
   });
 
@@ -70,11 +67,11 @@ export function fromEventPattern<T>(
     addHandler(eventHandler);
   }
 
-  function stop() {
+  function stop(): undefined {
     removeHandler?.(eventHandler);
   }
 
-  async function* eventGenerator(): AsyncGenerator<T, void, undefined> {
+  async function* eventGenerator(): AsyncGenerator<T, undefined, unknown> {
     start();
 
     return yield* eventConsumer;

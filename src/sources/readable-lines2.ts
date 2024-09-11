@@ -1,11 +1,16 @@
 import { Readable } from "node:stream";
 import { createInterface } from "node:readline";
+import { LinesOptions } from "./readable-lines";
+
+export { LinesOptions } from "./readable-lines";
 
 export async function* readableLines(
   readable: Readable,
-  encoding: BufferEncoding = "utf-8",
-): AsyncGenerator<string, void, undefined> {
-  readable.setEncoding(encoding);
+  { encoding }: LinesOptions = { encoding: "utf-8" },
+): AsyncGenerator<string, undefined, unknown> {
+  if (encoding !== undefined) {
+    readable.setEncoding(encoding);
+  }
   const readline = createInterface({
     input: readable,
   });

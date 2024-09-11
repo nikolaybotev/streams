@@ -2,7 +2,7 @@ export function iteratorRange(
   start: number,
   end: number,
   options?: { step?: number; inclusive?: boolean } | number,
-): Generator<number> {
+): Generator<number, undefined, unknown> {
   const { step = Math.sign(end - start), inclusive = false } =
     typeof options === "undefined"
       ? { step: Math.sign(end - start) }
@@ -15,7 +15,7 @@ export function iteratorRange(
     }
   }
 
-  function* rangeSource() {
+  function* rangeSource(): Generator<number, undefined, unknown> {
     if (step == 0 && inclusive) {
       yield end;
       return;

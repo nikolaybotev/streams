@@ -2,21 +2,9 @@
 // of Async Iterators and Generator functions.
 //
 
-import "./factories/async-iterator";
-import { iteratorInterval } from "./sources/interval";
-
-export function logger() {
-  const output: unknown[] = [];
-
-  const log = (...s: unknown[]) => {
-    output.push(...s);
-    console.log(...s);
-  };
-
-  log.output = output;
-
-  return log;
-}
+import "../factories/async-iterator";
+import { iteratorInterval } from "../sources/interval";
+import { logger } from "./helpers";
 
 test("async is eager", async () => {
   const log = logger();

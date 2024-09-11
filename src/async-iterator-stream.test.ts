@@ -1,6 +1,6 @@
 import "./factories";
 import { iteratorInterval } from "./sources/interval";
-import { logger } from "./behavior.test";
+import { logger } from "./test/helpers";
 
 test("some() consumes iterator", async () => {
   // See https://github.com/tc39/proposal-iterator-helpers?tab=readme-ov-file#somefn

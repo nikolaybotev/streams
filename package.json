@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "description": "A lazy streams library for functional composition in JavaScript.",
   "main": "index.js",
+  "type": "commonjs",
   "files": [
     "**/*.js",
     "**/*.d.ts",
-    "!demos/**"
+    "!demos/**",
+    "!test/**"
   ],
   "scripts": {
     "build": "run-s format:check eslint clean tsc",
@@ -32,22 +34,25 @@
     "url": "https://github.com/nikolaybotev/streams/issues"
   },
   "homepage": "https://github.com/nikolaybotev/streams",
+  "peerDependencies": {
+    "typescript": ">=5.6.2"
+  },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
     "@types/core-js": "^2.5.8",
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^29.5.12",
-    "@types/node": "^22.5.3",
+    "@types/node": "^22.5.4",
     "core-js": "^3.38.1",
     "del-cli": "^5.1.0",
-    "eslint": "^9.9.1",
+    "eslint": "^9.10.0",
     "globals": "^15.9.0",
     "jest": "^29.7.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.3.3",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4",
-    "typescript-eslint": "^8.4.0"
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.5.0"
   }
 }

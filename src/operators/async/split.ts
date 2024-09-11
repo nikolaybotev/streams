@@ -1,25 +1,19 @@
-import {
-  AsyncIteratorStream,
-  AsyncIteratorStreamImpl,
-} from "../../async-iterator-stream";
-import { handleChunk, Splitter } from "../../util/splitter";
+import { AsyncIteratorStream } from "../../async-iterator-stream";
+import { splitChunk, Splitter } from "../../util/splitter";
 
 declare module "../../async-iterator-stream" {
   interface AsyncIteratorStream<T> {
-    split<U>(by: Splitter<T, U>): AsyncIteratorStream<U>;
-  }
-  interface AsyncIteratorStreamImpl<T> {
-    split<U>(by: Splitter<T, U>): AsyncIteratorStream<U>;
+    split<U>(by: Splitter<T, U>): AsyncIteratorStream<U, undefined>;
   }
 }
 
-AsyncIteratorStreamImpl.prototype.split = function <T, U>(
+AsyncIteratorStream.prototype.split = function <T, U>(
   by: Splitter<T, U>,
-): AsyncIteratorStream<U> {
+): AsyncIteratorStream<U, undefined> {
   async function* splitOperator(it: AsyncIteratorStream<T>) {
     let remainder: U | undefined;
     for await (const chunk of it) {
-      const [items, nextRemainder] = handleChunk(by, chunk, remainder);
+      const [items, nextRemainder] = splitChunk(by, chunk, remainder);
       yield* items;
       remainder = nextRemainder;
     }
@@ -28,5 +22,5 @@ AsyncIteratorStreamImpl.prototype.split = function <T, U>(
       yield remainder;
     }
   }
-  return new AsyncIteratorStreamImpl(splitOperator(this));
+  return new AsyncIteratorStream(splitOperator(this));
 };

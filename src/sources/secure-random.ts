@@ -5,7 +5,7 @@ const randomBytes = promisify<number, Buffer>(randomBytesCb);
 
 export async function* iteratorSecureRandom(
   bufferSize: number = 64,
-): AsyncGenerator<number, void, undefined> {
+): AsyncGenerator<number, undefined, unknown> {
   while (true) {
     const data = await randomBytes(bufferSize);
     yield* data;

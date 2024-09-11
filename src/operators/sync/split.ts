@@ -1,22 +1,19 @@
-import { IteratorStream, IteratorStreamImpl } from "../../iterator-stream";
-import { handleChunk, Splitter } from "../../util/splitter";
+import { IteratorStream } from "../../iterator-stream";
+import { splitChunk, Splitter } from "../../util/splitter";
 
 declare module "../../iterator-stream" {
   interface IteratorStream<T> {
-    split<U>(by: Splitter<T, U>): IteratorStream<U>;
-  }
-  interface IteratorStreamImpl<T> {
-    split<U>(by: Splitter<T, U>): IteratorStream<U>;
+    split<U>(by: Splitter<T, U>): IteratorStream<U, undefined>;
   }
 }
 
-IteratorStreamImpl.prototype.split = function <T, U>(
+IteratorStream.prototype.split = function <T, U>(
   by: Splitter<T, U>,
-): IteratorStream<U> {
+): IteratorStream<U, undefined> {
   function* splitOperator(it: IteratorStream<T>) {
     let remainder: U | undefined;
     for (const chunk of it) {
-      const [items, nextRemainder] = handleChunk(by, chunk, remainder);
+      const [items, nextRemainder] = splitChunk(by, chunk, remainder);
       yield* items;
       remainder = nextRemainder;
     }
@@ -25,5 +22,5 @@ IteratorStreamImpl.prototype.split = function <T, U>(
       yield remainder;
     }
   }
-  return new IteratorStreamImpl(splitOperator(this));
+  return new IteratorStream(splitOperator(this));
 };
