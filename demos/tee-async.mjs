@@ -4,7 +4,8 @@ import { IteratorStream } from "../iterator-stream.js";
 import { iteratorRange } from "../sources/range.js";
 
 const source = iteratorRange(0, Infinity)
-  .streamAsync()
+  .toAsync()
+  .stream()
   .map((i) => String.fromCharCode("A".charCodeAt(0) + i));
 
 const teed = IteratorStream.from(source.tee()).take(3).toArray();
